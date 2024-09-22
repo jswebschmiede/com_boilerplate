@@ -1,4 +1,4 @@
-# Boilerplate - Joomla Component
+# Boilerplate - Joomla Component (Work in Progress)
 
 ## Description
 
