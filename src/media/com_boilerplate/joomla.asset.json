@@ -1,0 +1,25 @@
+{
+    "$schema": "https://developer.joomla.org/schemas/json-schema/web_assets.json",
+    "name": "com_boilerplate",
+    "version": "1.0.0",
+    "description": "Assets for the room booking component",
+    "license": "GPL-2.0-or-later",
+    "assets": [
+        {
+            "name": "com_boilerplate.main",
+            "type": "script",
+            "uri": "com_boilerplate/main.bundle.js",
+            "dependencies": ["core"],
+            "attributes": {
+                "defer": true
+            },
+            "version": "1.0.0"
+        },
+        {
+            "name": "com_boilerplate.global",
+            "type": "style",
+            "uri": "com_boilerplate/global.min.css",
+            "version": "1.0.0"
+        }
+    ]
+}

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="component" method="upgrade">
+    <name>com_boilerplate</name>
+    <version>1.0.0</version>
+    <description>COM_BOILERPLATE_XML_DESCRIPTION</description>
+    <author>[Your Name]</author>
+    <creationDate>[YYYY-MM-DD]</creationDate>
+    <copyright>(C) [Year] [Your Name]. All rights reserved.</copyright>
+    <license>GNU General Public License version 3 or later; see LICENSE.txt</license>
+    <namespace path="src">Joomla\Component\Boilerplate</namespace>
+
+    <!-- Runs on install -->
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
+        </sql>
+    </install>
+
+    <!-- Runs on uninstall -->
+    <uninstall>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file>
+        </sql>
+    </uninstall>
+
+    <administration>
+        <files folder="administrator/components/com_boilerplate">
+            <folder>services</folder>
+            <folder>src</folder>
+            <folder>tmpl</folder>
+        </files>
+
+        <languages folder="administrator/components/com_boilerplate/language">
+            <language tag="en-GB">en-GB/com_boilerplate.ini</language>
+            <language tag="en-GB">en-GB/com_boilerplate.sys.ini</language>
+        </languages>
+
+        <menu>COM_BOILERPLATE</menu>
+
+        <submenu>
+            <menu link="option=com_boilerplate&amp;view=boilerplate" view="boilerplate">COM_BOILERPLATE_MENU_BOILERPLATE</menu>
+        </submenu>
+    </administration>
+
+    <files folder="components/com_boilerplate">
+        <folder>src</folder>
+        <folder>tmpl</folder>
+    </files>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/com_boilerplate.ini</language>
+    </languages>
+
+    <media destination="com_boilerplate" folder="media/com_boilerplate">
+        <filename>joomla.asset.json</filename>
+        <folder>js</folder>
+        <folder>css</folder>
+        <folder>images</folder>
+    </media>
+
+    <dashboards>
+        <dashboard title="COM_BOILERPLATE_DASHBOARD_TITLE" icon="fa fa-cog">boilerplate</dashboard>
+    </dashboards>
+
+</extension>
