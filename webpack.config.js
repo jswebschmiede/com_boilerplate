@@ -9,7 +9,7 @@ const logSymbols = require('log-symbols');
 
 let lastPercentage = 0;
 
-const progressHandler = (percentage, message, ...args) => {
+const progressHandler = (percentage, message) => {
     // Round to 2 decimal places
     const roundedPercentage = Math.round(percentage * 100);
 
