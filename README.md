@@ -72,9 +72,8 @@ This creates an optimized version of the component and packages it into a ZIP fi
 
 You can customize the component by editing the files in the `src/` directory. The main customization points are:
 
--   replace all occurences of `com_boilerplate` with your component name
--   `src/media/com_boilerplate/js/main.js`: Main JavaScript file
--   `src/media/com_boilerplate/css/global.css`: Main CSS file (with Tailwind directives)
+-   replace all occurences of `com_boilerplate` with your component name, don't forget to change the name in the `package.json` file and the `webpack.config.js` file too
+-   replace all occurences of `Boilerplate` with your component name
 
 ## Contributing
 
