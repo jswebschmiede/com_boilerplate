@@ -9,6 +9,7 @@
 /docker-compose.yml
 /nbproject
 php.ini
+cli
 
 # Logs
 logs
