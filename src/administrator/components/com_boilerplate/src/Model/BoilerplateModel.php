@@ -18,7 +18,6 @@ use Joomla\CMS\MVC\Model\AdminModel;
 
 defined('_JEXEC') or die;
 
-
 /**
  * Methods supporting a single boilerplate record.
  *
@@ -58,6 +57,23 @@ class BoilerplateModel extends AdminModel
 
 		if (empty($form)) {
 			return false;
+		}
+
+		// Modify the form based on access controls.
+		if (!$this->canEditState((object) $data)) {
+			// Disable fields for display.
+			$form->setFieldAttribute('ordering', 'disabled', 'true');
+			$form->setFieldAttribute('state', 'disabled', 'true');
+
+			// Disable fields while saving.
+			// The controller has already verified this is a record you can edit.
+			$form->setFieldAttribute('ordering', 'filter', 'unset');
+			$form->setFieldAttribute('state', 'filter', 'unset');
+		}
+
+		// Don't allow to change the created_by user if not allowed to access com_users.
+		if (!$this->getCurrentUser()->authorise('core.manage', 'com_users')) {
+			$form->setFieldAttribute('created_by', 'filter', 'unset');
 		}
 
 		return $form;
@@ -105,6 +121,47 @@ class BoilerplateModel extends AdminModel
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Prepare and sanitise the table prior to saving.
+	 *
+	 * @param   Table  $table  A Table object.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.6
+	 */
+	protected function prepareTable($table): void
+	{
+		$date = Factory::getDate();
+		$user = $this->getCurrentUser();
+
+		if (empty($table->id)) {
+			// Set the values
+			$table->created = $date->toSql();
+			$table->created_by = $user->id;
+
+			// Set ordering to the last item if not set
+			if (empty($table->ordering)) {
+				$db = $this->getDatabase();
+				$query = $db->getQuery(true)
+					->select('MAX(' . $db->quoteName('ordering') . ')')
+					->from($db->quoteName('#__boilerplate_boilerplate'));
+
+				$db->setQuery($query);
+				$max = $db->loadResult();
+
+				$table->ordering = $max + 1;
+			}
+		} else {
+			// Set the values
+			$table->modified = $date->toSql();
+			$table->modified_by = $user->id;
+		}
+
+		// Increment the content version number.
+		$table->version++;
 	}
 
 	/**

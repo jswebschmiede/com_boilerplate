@@ -68,6 +68,10 @@ class BoilerplatesModel extends ListModel
 
 		$query->from($db->quoteName('#__boilerplate_boilerplate', 'a'));
 
+		$query->select('b.name AS `created_by`');
+
+		$query->leftJoin($db->quoteName('#__users', 'b') . ' ON b.id = a.created_by');
+
 		// Filter by published state
 		$published = $this->getState('filter.state');
 
@@ -90,9 +94,9 @@ class BoilerplatesModel extends ListModel
 
 		$query->order($db->escape($orderCol) . ' ' . $db->escape($orderDirn));
 
-		if ($orderCol === 'title') {
+		if ($orderCol === 'name') {
 			$ordering = [
-				$db->quoteName('a.title') . ' ' . $db->escape($orderDirn),
+				$db->quoteName('a.name') . ' ' . $db->escape($orderDirn),
 			];
 		} else {
 			$ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);

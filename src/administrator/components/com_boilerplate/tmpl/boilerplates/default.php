@@ -11,25 +11,32 @@
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Session\Session;
 use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Language\Multilanguage;
 
 defined('_JEXEC') or die;
 
 /** @var \Joomla\Component\Boilerplate\Administrator\View\Boilerplates\HtmlView $this */
 
+/** @var \Joomla\CMS\WebAsset\WebAssetManager $wa */
+$wa = $this->document->getWebAssetManager();
+$wa->useScript('table.columns')
+	->useScript('multiselect');
+
 $state = $this->getState();
 $items = $this->getItems();
 $pagination = $this->getPagination();
-
+$user = $this->getCurrentUser();
+$userId = $user->get('id');
 $listOrder = $this->escape($state->get('list.ordering'));
 $listDirn = $this->escape($state->get('list.direction'));
+$saveOrder = $listOrder == 'a.ordering';
 
-$states = array(
-	'0' => Text::_('JUNPUBLISHED'),
-	'1' => Text::_('JPUBLISHED'),
-	'2' => Text::_('JARCHIVED'),
-	'-2' => Text::_('JTRASHED')
-);
+if ($saveOrder && !empty($items)) {
+	$saveOrderingUrl = 'index.php?option=com_boilerplate&task=boilerplates.saveOrderAjax&tmpl=component&' . Session::getFormToken() . '=1';
+	HTMLHelper::_('draggablelist.draggable');
+}
 
 $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 
@@ -37,98 +44,149 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 
 <form action="<?php echo Route::_('index.php?option=com_boilerplate&view=boilerplates'); ?>" method="post"
 	name="adminForm" id="adminForm">
-	<?php echo LayoutHelper::render('joomla.searchtools.default', ['view' => $this]); ?>
+	<div class="row">
+		<div class="col-md-12">
+			<div id="j-main-container" class="j-main-container">
+				<?php
+				// Search tools bar
+				echo LayoutHelper::render('joomla.searchtools.default', ['view' => $this]);
+				?>
 
-	<?php if (empty($items)): ?>
-		<div class="alert alert-info">
-			<span class="fa fa-info-circle" aria-hidden="true"></span>
-			<span class="sr-only"><?php echo Text::_('INFO'); ?></span>
-			<?php echo Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
+				<?php if (empty($items)): ?>
+					<div class="alert alert-info">
+						<span class="fa fa-info-circle" aria-hidden="true"></span>
+						<span class="sr-only"><?php echo Text::_('INFO'); ?></span>
+						<?php echo Text::_('JGLOBAL_NO_MATCHING_RESULTS'); ?>
+					</div>
+				<?php else: ?>
+					<table class="table itemList" id="boilerplateList">
+						<caption class="visually-hidden">
+							<?php echo Text::_('COM_BOILERPLATE_BOILERPLATES_TABLE_CAPTION'); ?>,
+							<span id="orderedBy"><?php echo Text::_('JGLOBAL_SORTED_BY'); ?> </span>,
+							<span id="filteredBy"><?php echo Text::_('JGLOBAL_FILTERED_BY'); ?></span>
+						</caption>
+						<thead>
+							<tr>
+								<td class="w-1 text-center">
+									<?php echo HTMLHelper::_('grid.checkall'); ?>
+								</td>
+
+								<th scope="col" class="w-1 text-center d-none d-md-table-cell">
+									<?php echo HTMLHelper::_('grid.sort', '<i class="icon-menu-2"></i>', 'a.ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING'); ?>
+								</th>
+
+								<th scope="col" class="w-5 text-center">
+									<?php echo HTMLHelper::_('searchtools.sort', 'JSTATUS', 'a.state', $listDirn, $listOrder); ?>
+								</th>
+
+								<th scope="col" class="w-20">
+									<?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
+								</th>
+
+								<th scope="col" class="w-10">
+									<?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_CREATED_DATE', 'a.created', $listDirn, $listOrder); ?>
+								</th>
+
+								<?php if (Multilanguage::isEnabled()): ?>
+									<th scope="col" class="w-10 d-none d-md-table-cell">
+										<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_LANGUAGE', 'a.language', $listDirn, $listOrder); ?>
+									</th>
+								<?php endif; ?>
+
+								<th class="w-10">
+									<?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_FIELD_CREATED_BY_LABEL', 'a.created_by', $listDirn, $listOrder); ?>
+								</th>
+
+								<th scope="col" class="w-5 d-none d-md-table-cell">
+									<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
+								</th>
+							</tr>
+						</thead>
+						<tbody <?php if ($saveOrder): ?> class="js-draggable" data-url="<?php echo $saveOrderingUrl; ?>"
+								data-direction="<?php echo strtolower($listDirn); ?>" data-nested="true" <?php endif; ?>>
+							<?php foreach ($items as $i => $item):
+								$ordering = ($listOrder == 'ordering');
+								$canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $userId || is_null($item->checked_out);
+								$canCreate = $user->authorise('core.create', 'com_boilerplate');
+								$canEdit = $user->authorise('core.edit', 'com_boilerplate');
+								$canChange = $user->authorise('core.edit.state', 'com_boilerplate');
+								?>
+								<tr class="row<?php echo $i % 2; ?>" data-draggable-group="1">
+									<td class="text-center">
+										<?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
+									</td>
+
+									<td class="text-center d-none d-md-table-cell">
+										<?php
+										$iconClass = '';
+
+										if (!$canChange) {
+											$iconClass = ' inactive';
+										} elseif (!$saveOrder) {
+											$iconClass = ' inactive" title="' . Text::_('JORDERINGDISABLED');
+										}
+										?>
+										<span class="sortable-handler <?php echo $iconClass ?>">
+											<span class="icon-ellipsis-v" aria-hidden="true"></span>
+										</span>
+										<?php if ($canChange && $saveOrder): ?>
+											<input type="text" name="order[]" size="5" value="<?php echo $item->ordering; ?>"
+												class="width-20 text-area-order hidden">
+										<?php endif; ?>
+									</td>
+
+									<td class="article-status text-center">
+										<?php echo HTMLHelper::_('jgrid.published', $item->state, $i, 'boilerplates.', $canChange, 'cb'); ?>
+									</td>
+
+									<th scope="row" class="has-context">
+										<a class="hasTooltip d-flex align-items-center gap-1"
+											href="<?php echo Route::_('index.php?option=com_boilerplate&task=boilerplate.edit&id=' . $item->id); ?>"
+											title="<?php echo Text::_('COM_BOILERPLATE_EDIT'); ?>" data-bs-placement="top">
+											<?php echo $editIcon; ?>
+											<?php echo $this->escape($item->name); ?>
+										</a>
+									</th>
+
+									<td class="created small">
+										<?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC2')); ?>
+									</td>
+
+									<?php if (Multilanguage::isEnabled()): ?>
+										<td class="small d-none d-md-table-cell">
+											<?php echo LayoutHelper::render('joomla.content.language', $item); ?>
+										</td>
+									<?php endif; ?>
+
+									<td class="small">
+										<?php echo $item->created_by; ?>
+									</td>
+
+									<td class="id d-none d-md-table-cell">
+										<?php echo $item->id; ?>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+
+				<?php echo $pagination->getListFooter(); ?>
+
+				<?php // Load the batch processing form. ?>
+				<?php
+				if (
+					$user->authorise('core.create', 'com_boilerplate')
+					&& $user->authorise('core.edit', 'com_boilerplate')
+					&& $user->authorise('core.edit.state', 'com_boilerplate')
+				): ?>
+					<template id="joomla-dialog-batch"><?php echo $this->loadTemplate('batch_body'); ?></template>
+				<?php endif; ?>
+
+				<input type="hidden" name="task" value="">
+				<input type="hidden" name="boxchecked" value="0">
+				<?php echo HTMLHelper::_('form.token'); ?>
+			</div>
 		</div>
-	<?php else: ?>
-		<table class="table itemList" id="boilerplateTable">
-			<thead>
-				<tr>
-					<td class="w-1 text-center">
-						<?php echo HTMLHelper::_('grid.checkall'); ?>
-					</td>
-
-					<th scope="col" class="w-1 text-center d-none d-md-table-cell">
-						<?php echo HTMLHelper::_('grid.sort', '<i class="icon-menu-2"></i>', 'a.ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING'); ?>
-					</th>
-
-					<th scope="col" class="w-5 text-center">
-						<?php echo HTMLHelper::_('searchtools.sort', 'JSTATUS', 'a.state', $listDirn, $listOrder); ?>
-					</th>
-
-					<th scope="col" class="w-20">
-						<?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_TITLE', 'a.title', $listDirn, $listOrder); ?>
-					</th>
-
-					<th scope="col" class="w-25">
-						<?php echo HTMLHelper::_('searchtools.sort', 'COM_BOILERPLATE_BOILERPLATES_LABEL_DESCRIPTION', 'a.description', $listDirn, $listOrder); ?>
-					</th>
-
-					<th scope="col" class="w-10">
-						<?php echo HTMLHelper::_('searchtools.sort', 'JGLOBAL_CREATED_DATE', 'a.created', $listDirn, $listOrder); ?>
-					</th>
-
-					<th scope="col" class="w-5 d-none d-md-table-cell">
-						<?php echo HTMLHelper::_('searchtools.sort', 'JGRID_HEADING_ID', 'a.id', $listDirn, $listOrder); ?>
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php foreach ($items as $i => $item): ?>
-					<tr class="row<?php echo $i % 2; ?>">
-						<td class="text-center">
-							<?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
-						</td>
-
-						<td class="text-center d-none d-md-table-cell">
-							<?php /* TODO: Add ordering logic */ ?>
-							<span class="sortable-handler">
-								<span class="icon-ellipsis-v"></span>
-							</span>
-						</td>
-
-						<td class="article-status text-center">
-							<?php echo HTMLHelper::_('jgrid.published', $item->state, $i, 'boilerplates.', $canChange, 'cb'); ?>
-						</td>
-
-						<th scope="row" class="has-context">
-							<a class="hasTooltip"
-								href="<?php echo Route::_('index.php?option=com_boilerplate&task=boilerplate.edit&id=' . $item->id); ?>">
-								<?php echo $editIcon; ?>
-								<?php echo $this->escape($item->title); ?>
-							</a>
-						</th>
-
-						<td class="description">
-							<?php echo $this->escape($item->description); ?>
-						</td>
-
-						<td class="created small">
-							<?php echo HTMLHelper::_('date', $item->created, Text::_('DATE_FORMAT_LC2')); ?>
-						</td>
-
-						<td class="id d-none d-md-table-cell">
-							<?php echo $item->id; ?>
-						</td>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-	<?php endif; ?>
-
-	<div class="pagination center">
-		<?php echo $pagination->getListFooter(); ?>
 	</div>
-	<input type="hidden" name="task" value="" />
-	<input type="hidden" name="boxchecked" value="0" />
-	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
-
-	<?php echo HTMLHelper::_('form.token'); ?>
-	
 </form>
