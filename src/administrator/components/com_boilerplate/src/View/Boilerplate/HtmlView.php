@@ -18,7 +18,6 @@ use Joomla\CMS\Language\Text;
 use Joomla\Registry\Registry;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\MVC\View\GenericDataException;
-use Joomla\CMS\Toolbar\ToolbarFactoryInterface;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 use Joomla\Component\Boilerplate\Administrator\Model\BoilerplateModel;
@@ -93,16 +92,16 @@ class HtmlView extends BaseHtmlView
 		return $this->item;
 	}
 
-    /**
-     * Method to display the view.
-     *
-     * @param   string  $tpl  A template file to load. [optional]
-     *
-     * @return  void
-     *
-     * @since   1.6
-     * @throws  \Exception
-     */
+	/**
+	 * Method to display the view.
+	 *
+	 * @param   string  $tpl  A template file to load. [optional]
+	 *
+	 * @return  void
+	 *
+	 * @since   1.6
+	 * @throws  \Exception
+	 */
 	public function display($tpl = null): void
 	{
 		/** @var BoilerplateModel $model */
@@ -131,24 +130,30 @@ class HtmlView extends BaseHtmlView
 	protected function addToolbar(): void
 	{
 		Factory::getApplication()->input->set('hidemainmenu', true);
-		$isNew = $this->item->id == 0;
-
-		$toolbar = Factory::getContainer()->get(ToolbarFactoryInterface::class)->createToolbar('toolbar');
+		$isNew = ($this->item->id == 0);
 
 		ToolbarHelper::title(
 			Text::_('COM_BOILERPLATE_TITLE_BOILERPLATE_' . ($isNew ? 'ADD_BOILERPLATE' : 'EDIT_BOILERPLATE'))
 		);
 
+		// Check if the user has permission to edit
 		$canDo = ContentHelper::getActions('com_boilerplate');
-		if ($canDo->get('core.create')) {
-			$toolbar->apply('boilerplate.apply');
-			$toolbar->save('boilerplate.save');
+
+		if ($canDo->get('core.create') || $canDo->get('core.edit')) {
+			ToolbarHelper::apply('boilerplate.apply');
+			ToolbarHelper::save('boilerplate.save');
+			ToolbarHelper::save2new('boilerplate.save2new');
 		}
-		
+
 		if ($isNew) {
-			$toolbar->cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
+			ToolbarHelper::cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
 		} else {
-			$toolbar->cancel('boilerplate.cancel', 'JTOOLBAR_CLOSE');
+			ToolbarHelper::cancel('boilerplate.cancel', 'JTOOLBAR_CLOSE');
+		}
+
+		// Add a "Save & Close" button
+		if ($canDo->get('core.edit')) {
+			ToolbarHelper::save2copy('boilerplate.save2copy');
 		}
 	}
 }
