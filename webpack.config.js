@@ -92,10 +92,10 @@ module.exports = (env, argv) => {
                         from: 'src/administrator/components/com_boilerplate',
                         to: 'administrator/components/com_boilerplate',
                     },
-                    {
-                        from: 'src/components/com_boilerplate',
-                        to: 'components/com_boilerplate',
-                    },
+                    // {
+                    //     from: 'src/components/com_boilerplate',
+                    //     to: 'components/com_boilerplate',
+                    // },
                     {
                         from: 'src/media/com_boilerplate',
                         to: 'media/com_boilerplate',
