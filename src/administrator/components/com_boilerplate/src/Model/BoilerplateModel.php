@@ -14,7 +14,10 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\Language\Text;
+use Joomla\String\StringHelper;
 use Joomla\CMS\MVC\Model\AdminModel;
+use Joomla\CMS\Form\FormFactoryInterface;
+use Joomla\CMS\Versioning\VersionableModelTrait;
 
 defined('_JEXEC') or die;
 
@@ -25,6 +28,8 @@ defined('_JEXEC') or die;
  */
 class BoilerplateModel extends AdminModel
 {
+	use VersionableModelTrait;
+
 	/**
 	 * The type alias for this content type.
 	 *
@@ -164,6 +169,24 @@ class BoilerplateModel extends AdminModel
 		$table->version++;
 	}
 
+	protected function generateNewTitleAndAlias(string $alias, string $title): array
+	{
+		// Alter the title & alias
+		$table = $this->getTable();
+		$aliasField = $table->getColumnAlias('alias');
+		$titleField = $table->getColumnAlias('name');
+
+		while ($table->load([$aliasField => $alias])) {
+			if ($title === $table->$titleField) {
+				$title = StringHelper::increment($title, 'dash');
+			}
+
+			$alias = StringHelper::increment($alias, 'dash');
+		}
+
+		return [$title, $alias];
+	}
+
 	/**
 	 * Method to save the form data.
 	 *
@@ -175,6 +198,35 @@ class BoilerplateModel extends AdminModel
 	 */
 	public function save($data): bool
 	{
+		$input = Factory::getApplication()->getInput();
+
+		// Alter the name for save as copy
+		if ($input->get('task') == 'save2copy') {
+			/** @var \Joomla\Component\Boilerplate\Administrator\Table\BoilerplateTable $origTable */
+			$origTable = clone $this->getTable();
+			$origTable->load($input->getInt('id'));
+
+			if ($data['name'] == $origTable->name) {
+				list($name, $alias) = $this->generateNewTitleAndAlias($data['alias'], $data['name']);
+				$data['name'] = $name;
+				$data['alias'] = $alias;
+			} else {
+				if ($data['alias'] == $origTable->alias) {
+					$data['alias'] = '';
+				}
+			}
+
+			$data['state'] = 0;
+		}
 		return parent::save($data);
+	}
+
+	/**
+	 * Summary of getFormFactory
+	 * @return FormFactoryInterface
+	 */
+	public function getFormFactory(): FormFactoryInterface
+	{
+		return Factory::getContainer()->get(FormFactoryInterface::class);
 	}
 }
