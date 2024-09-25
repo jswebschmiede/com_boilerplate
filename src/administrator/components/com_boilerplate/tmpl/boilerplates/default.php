@@ -72,7 +72,7 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 								</td>
 
 								<th scope="col" class="w-1 text-center d-none d-md-table-cell">
-									<?php echo HTMLHelper::_('grid.sort', '<i class="icon-menu-2"></i>', 'a.ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING'); ?>
+									<?php echo HTMLHelper::_('searchtools.sort', '', 'a.ordering', $listDirn, $listOrder, null, 'asc', 'JGRID_HEADING_ORDERING', 'icon-sort'); ?>
 								</th>
 
 								<th scope="col" class="w-5 text-center">
@@ -140,9 +140,10 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 									</td>
 
 									<th scope="row" class="has-context">
-										<a class="hasTooltip d-flex align-items-center gap-1"
+										<a class="hasTooltip d-inline-flex align-items-center gap-1"
 											href="<?php echo Route::_('index.php?option=com_boilerplate&task=boilerplate.edit&id=' . $item->id); ?>"
-											title="<?php echo Text::_('COM_BOILERPLATE_EDIT'); ?>" data-bs-placement="top">
+											title="<?php echo Text::_('COM_BOILERPLATE_EDIT') . ' ' . $this->escape($item->name); ?>"
+											data-bs-placement="top">
 											<?php echo $editIcon; ?>
 											<?php echo $this->escape($item->name); ?>
 										</a>
