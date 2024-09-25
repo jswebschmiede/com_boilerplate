@@ -16,7 +16,9 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\Registry\Registry;
+use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
@@ -129,31 +131,49 @@ class HtmlView extends BaseHtmlView
 	 */
 	protected function addToolbar(): void
 	{
-		Factory::getApplication()->input->set('hidemainmenu', true);
+		Factory::getApplication()->getInput()->set('hidemainmenu', true);
+
+		$user = $this->getCurrentUser();
 		$isNew = ($this->item->id == 0);
+		$toolbar = Toolbar::getInstance();
 
-		ToolbarHelper::title(
-			Text::_('COM_BOILERPLATE_TITLE_BOILERPLATE_' . ($isNew ? 'ADD_BOILERPLATE' : 'EDIT_BOILERPLATE'))
-		);
-
-		// Check if the user has permission to edit
 		$canDo = ContentHelper::getActions('com_boilerplate');
 
-		if ($canDo->get('core.create') || $canDo->get('core.edit')) {
-			ToolbarHelper::apply('boilerplate.apply');
-			ToolbarHelper::save('boilerplate.save');
-			ToolbarHelper::save2new('boilerplate.save2new');
+		ToolbarHelper::title($isNew ? Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATE_NEW') : Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATE_EDIT'), 'bookmark boilerplates');
+
+		// If not checked out, can save the item.
+		if ($canDo->get('core.edit') || \count($user->getAuthorisedCategories('com_boilerplate', 'core.create')) > 0) {
+			$toolbar->apply('boilerplate.apply');
 		}
 
-		if ($isNew) {
-			ToolbarHelper::cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
+		$saveGroup = $toolbar->dropdownButton('save-group');
+
+		$saveGroup->configure(
+			function (Toolbar $childBar) use ($canDo, $user, $isNew): void {
+				// If not checked out, can save the item.
+				if ($canDo->get('core.edit') > 0) {
+					$childBar->save('boilerplate.save');
+
+					if ($canDo->get('core.create')) {
+						$childBar->save2new('boilerplate.save2new');
+					}
+				}
+
+				// If an existing item, can save to a copy.
+				if (!$isNew && $canDo->get('core.create')) {
+					$childBar->save2copy('boilerplate.save2copy');
+				}
+			}
+		);
+
+		if (empty($this->item->id)) {
+			$toolbar->cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
 		} else {
-			ToolbarHelper::cancel('boilerplate.cancel', 'JTOOLBAR_CLOSE');
-		}
+			$toolbar->cancel('boilerplate.cancel');
 
-		// Add a "Save & Close" button
-		if ($canDo->get('core.edit')) {
-			ToolbarHelper::save2copy('boilerplate.save2copy');
+			if (ComponentHelper::isEnabled('com_contenthistory') && $this->state->params->get('save_history', 0) && $canDo->get('core.edit')) {
+				$toolbar->versions('com_boilerplate.boilerplate', $this->item->id);
+			}
 		}
 	}
 }
