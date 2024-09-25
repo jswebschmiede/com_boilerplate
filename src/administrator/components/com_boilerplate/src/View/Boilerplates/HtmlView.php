@@ -20,6 +20,7 @@ use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
+use Joomla\Component\Boilerplate\Administrator\Model\BoilerplatesModel;
 
 /**
  * View class for a list of boilerplates.
@@ -101,20 +102,25 @@ class HtmlView extends BaseHtmlView
 	}
 
 
-	/**
-	 * Display the view
-	 *
-	 * @param   string  $tpl  Template name
-	 *
-	 * @return void
-	 */
-	public function display($tpl = null)
+    /**
+     * Method to display the view.
+     *
+     * @param   string  $tpl  A template file to load. [optional]
+     *
+     * @return  void
+     *
+     * @since   1.6
+     * @throws  \Exception
+     */
+	public function display($tpl = null): void
 	{
-		$this->items = $this->get('Items');
-		$this->pagination = $this->get('Pagination');
-		$this->state = $this->get('State');
-		$this->filterForm = $this->get('FilterForm');
-		$this->activeFilters = $this->get('ActiveFilters');
+		/** @var BoilerplatesModel $model */
+		$model = $this->getModel();
+		$this->items = $model->getItems();
+		$this->pagination = $model->getPagination();
+		$this->state = $model->getState();
+		$this->filterForm = $model->getFilterForm();
+		$this->activeFilters = $model->getActiveFilters();
 
 		if (count($errors = $this->get('Errors'))) {
 			throw new GenericDataException(implode("\n", $errors), 500);

@@ -119,15 +119,16 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 				<?php endforeach; ?>
 			</tbody>
 		</table>
-
-		<div class="pagination center">
-			<?php echo $pagination->getListFooter(); ?>
-		</div>
-		<input type="hidden" name="task" value="" />
-		<input type="hidden" name="boxchecked" value="0" />
-		<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
-		<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
-
-		<?php echo HTMLHelper::_('form.token'); ?>
 	<?php endif; ?>
+
+	<div class="pagination center">
+		<?php echo $pagination->getListFooter(); ?>
+	</div>
+	<input type="hidden" name="task" value="" />
+	<input type="hidden" name="boxchecked" value="0" />
+	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>" />
+	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>" />
+
+	<?php echo HTMLHelper::_('form.token'); ?>
+	
 </form>

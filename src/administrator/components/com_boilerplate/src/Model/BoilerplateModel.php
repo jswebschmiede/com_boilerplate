@@ -24,7 +24,7 @@ defined('_JEXEC') or die;
  *
  * @since  1.0.0
  */
-class BookingModel extends AdminModel
+class BoilerplateModel extends AdminModel
 {
 	/**
 	 * The type alias for this content type.
@@ -73,7 +73,7 @@ class BookingModel extends AdminModel
 	 */
 	public function getTable($name = '', $prefix = '', $options = []): bool|Table
 	{
-		$name = 'boilerplates';
+		$name = 'boilerplate';
 		$prefix = 'Table';
 
 		if ($table = $this->_createTable($name, $prefix, $options)) {
@@ -118,15 +118,6 @@ class BookingModel extends AdminModel
 	 */
 	public function save($data): bool
 	{
-		$pk = (!empty($data['id'])) ? $data['id'] : (int) $this->getState($this->getName() . '.id');
-		$isNew = $pk <= 0;
-
-		if ($isNew) {
-			$data['created'] = Factory::getDate()->toSql();
-		} else {
-			unset($data['created']);
-		}
-
 		return parent::save($data);
 	}
 }

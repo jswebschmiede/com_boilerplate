@@ -21,6 +21,7 @@ use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\Toolbar\ToolbarFactoryInterface;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\Component\Content\Administrator\Helper\ContentHelper;
+use Joomla\Component\Boilerplate\Administrator\Model\BoilerplateModel;
 
 /**
  * View class for a list of boilerplates.
@@ -92,21 +93,23 @@ class HtmlView extends BaseHtmlView
 		return $this->item;
 	}
 
-	/**
-	 * Execute and display a template script.
-	 *
-	 * @param   string  $tpl  The name of the template file to parse; automatically searches through the template paths.
-	 *
-	 * @return  mixed  A string if successful, otherwise an Error object.
-	 *
-	 * @throws \Exception
-	 * @since   1.6
-	 */
+    /**
+     * Method to display the view.
+     *
+     * @param   string  $tpl  A template file to load. [optional]
+     *
+     * @return  void
+     *
+     * @since   1.6
+     * @throws  \Exception
+     */
 	public function display($tpl = null): void
 	{
-		$this->form = $this->get('Form');
-		$this->item = $this->get('Item');
-		$this->state = $this->get('State');
+		/** @var BoilerplateModel $model */
+		$model = $this->getModel();
+		$this->form = $model->getForm();
+		$this->item = $model->getItem();
+		$this->state = $model->getState();
 
 		if (count($errors = $this->get('Errors'))) {
 			throw new GenericDataException(implode("\n", $errors), 500);
@@ -114,7 +117,7 @@ class HtmlView extends BaseHtmlView
 
 		$this->addToolbar();
 
-		return parent::display($tpl);
+		parent::display($tpl);
 	}
 
 	/**
@@ -125,7 +128,7 @@ class HtmlView extends BaseHtmlView
 	 * @throws \Exception
 	 * @since   1.6
 	 */
-	protected function addToolbar()
+	protected function addToolbar(): void
 	{
 		Factory::getApplication()->input->set('hidemainmenu', true);
 		$isNew = $this->item->id == 0;
@@ -133,7 +136,7 @@ class HtmlView extends BaseHtmlView
 		$toolbar = Factory::getContainer()->get(ToolbarFactoryInterface::class)->createToolbar('toolbar');
 
 		ToolbarHelper::title(
-			Text::_('COM_BOILERPLATE_TITLE_BOILERPLATE' . ($isNew ? 'ADD_BOILERPLATE' : 'EDIT_BOILERPLATE'))
+			Text::_('COM_BOILERPLATE_TITLE_BOILERPLATE_' . ($isNew ? 'ADD_BOILERPLATE' : 'EDIT_BOILERPLATE'))
 		);
 
 		$canDo = ContentHelper::getActions('com_boilerplate');
@@ -141,6 +144,7 @@ class HtmlView extends BaseHtmlView
 			$toolbar->apply('boilerplate.apply');
 			$toolbar->save('boilerplate.save');
 		}
+		
 		if ($isNew) {
 			$toolbar->cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
 		} else {
