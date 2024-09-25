@@ -12,7 +12,9 @@ namespace Joomla\Component\Boilerplate\Administrator\Table;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Table\Table;
+use Joomla\CMS\Language\Text;
 use Joomla\Database\DatabaseDriver;
+use Joomla\Event\DispatcherInterface;
 use Joomla\CMS\Application\ApplicationHelper;
 use Joomla\CMS\Versioning\VersionableTableInterface;
 
@@ -29,11 +31,18 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 	protected $_supportNullValue = true;
 
 	/**
-	 * @param DatabaseDriver $db A database connector object
+	 * Constructor
+	 *
+	 * @param   DatabaseDriver        $db          Database connector object
+	 * @param   ?DispatcherInterface  $dispatcher  Event dispatcher for this table
+	 *
+	 * @since   1.5
 	 */
-	public function __construct(DatabaseDriver $db)
+	public function __construct(DatabaseDriver $db, DispatcherInterface $dispatcher = null)
 	{
-		parent::__construct('#__boilerplate_boilerplate', 'id', $db);
+		$this->typeAlias = 'com_boilerplate.boilerplate';
+
+		parent::__construct('#__boilerplate_boilerplate', 'id', $db, $dispatcher);
 
 		$this->created = Factory::getDate()->toSql();
 		$this->setColumnAlias('published', 'state');
@@ -108,6 +117,17 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 	 */
 	public function store($updateNulls = true): bool
 	{
+		$db = $this->getDbo();
+
+		// Verify that the alias is unique
+		$table = new self($db, $this->getDispatcher());
+
+		if ($table->load(['alias' => $this->alias]) && ($table->id != $this->id || $this->id == 0)) {
+			$this->setError(Text::_('COM_BOILERPLATE_ERROR_UNIQUE_ALIAS'));
+
+			return false;
+		}
+
 		return parent::store($updateNulls);
 	}
 
