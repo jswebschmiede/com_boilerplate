@@ -1,12 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
+	<fieldset name="boilerplate"
+			  label="COM_BOILERPLATE_FIELDSET_CONFIG_BOILERPLATE_OPTIONS_LABEL"
+			  description="COM_BOILERPLATE_FIELDSET_CONFIG_BOILERPLATE_OPTIONS_DESC">
+
+		<field name="save_history"
+			   type="radio"
+			   layout="joomla.form.field.radio.switcher"
+			   label="JGLOBAL_SAVE_HISTORY_OPTIONS_LABEL"
+			   default="0">
+			<option value="0">JNO</option>
+			<option value="1">JYES</option>
+		</field>
+
+		<field name="history_limit"
+			   type="number"
+			   label="JGLOBAL_HISTORY_LIMIT_OPTIONS_LABEL"
+			   filter="integer"
+			   default="10"
+			   showon="save_history:1" />
+
+	</fieldset>
+
 	<fieldset name="permissions"
 			  label="JCONFIG_PERMISSIONS_LABEL"
 			  description="JCONFIG_PERMISSIONS_DESC">
+
 		<field name="rules"
 			   type="rules"
 			   label="JCONFIG_PERMISSIONS_LABEL"
-			   class="inputbox"
 			   validate="rules"
 			   filter="rules"
 			   component="com_boilerplate"
