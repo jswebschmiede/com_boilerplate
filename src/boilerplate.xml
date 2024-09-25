@@ -25,9 +25,13 @@
 
     <administration>
         <files folder="administrator/components/com_boilerplate">
-            <folder>services</folder>
-            <folder>src</folder>
+            <filename>access.xml</filename>
+            <filename>config.xml</filename>
             <folder>tmpl</folder>
+            <folder>forms</folder>
+            <folder>services</folder>
+            <folder>sql</folder>
+            <folder>src</folder>
         </files>
 
         <languages folder="administrator/components/com_boilerplate/language">
@@ -38,28 +42,22 @@
         <menu>COM_BOILERPLATE</menu>
 
         <submenu>
-            <menu link="option=com_boilerplate&amp;view=boilerplate" view="boilerplate">COM_BOILERPLATE_MENU_BOILERPLATE</menu>
+            <menu link="option=com_boilerplate&amp;view=boilerplates" view="boilerplates">COM_BOILERPLATE_MENU_BOILERPLATE</menu>
         </submenu>
     </administration>
 
-    <files folder="components/com_boilerplate">
+    <!-- <files folder="components/com_boilerplate">
         <folder>src</folder>
         <folder>tmpl</folder>
     </files>
 
     <languages folder="language">
         <language tag="en-GB">en-GB/com_boilerplate.ini</language>
-    </languages>
+    </languages> -->
 
     <media destination="com_boilerplate" folder="media/com_boilerplate">
         <filename>joomla.asset.json</filename>
         <folder>js</folder>
         <folder>css</folder>
-        <folder>images</folder>
     </media>
-
-    <dashboards>
-        <dashboard title="COM_BOILERPLATE_DASHBOARD_TITLE" icon="fa fa-cog">boilerplate</dashboard>
-    </dashboards>
-
 </extension>
