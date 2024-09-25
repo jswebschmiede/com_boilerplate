@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<extension type="component" method="upgrade">
+<extension type="component"
+           method="upgrade">
     <name>com_boilerplate</name>
     <version>1.0.0</version>
     <description>COM_BOILERPLATE_XML_DESCRIPTION</description>
@@ -12,14 +13,16 @@
     <!-- Runs on install -->
     <install>
         <sql>
-            <file driver="mysql" charset="utf8">sql/install.mysql.utf8.sql</file>
+            <file driver="mysql"
+                  charset="utf8">sql/install.mysql.utf8.sql</file>
         </sql>
     </install>
 
     <!-- Runs on uninstall -->
     <uninstall>
         <sql>
-            <file driver="mysql" charset="utf8">sql/uninstall.mysql.utf8.sql</file>
+            <file driver="mysql"
+                  charset="utf8">sql/uninstall.mysql.utf8.sql</file>
         </sql>
     </uninstall>
 
@@ -42,7 +45,9 @@
         <menu>COM_BOILERPLATE</menu>
 
         <submenu>
-            <menu link="option=com_boilerplate&amp;view=boilerplates" view="boilerplates">COM_BOILERPLATE_MENU_BOILERPLATE</menu>
+            <menu link="option=com_boilerplate&amp;view=boilerplates"
+                  view="boilerplates">
+                COM_BOILERPLATE_MENU_BOILERPLATE</menu>
         </submenu>
     </administration>
 
@@ -55,7 +60,8 @@
         <language tag="en-GB">en-GB/com_boilerplate.ini</language>
     </languages> -->
 
-    <media destination="com_boilerplate" folder="media/com_boilerplate">
+    <media destination="com_boilerplate"
+           folder="media/com_boilerplate">
         <filename>joomla.asset.json</filename>
         <folder>js</folder>
         <folder>css</folder>
