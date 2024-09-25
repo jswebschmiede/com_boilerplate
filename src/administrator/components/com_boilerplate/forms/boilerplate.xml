@@ -1,6 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <form>
        <fieldset name="details">
+              <field name="id"
+                     type="text"
+                     label="JGLOBAL_FIELD_ID_LABEL"
+                     default="0"
+                     readonly="true"
+                     class="readonly" />
+
+              <field name="name"
+                     type="text"
+                     label="COM_BOILERPLATE_FIELD_NAME_LABEL"
+                     required="true" />
+
+              <field name="alias"
+                     type="text"
+                     label="JFIELD_ALIAS_LABEL"
+                     description="JFIELD_ALIAS_DESC"
+                     hint="JFIELD_ALIAS_PLACEHOLDER" />
 
               <field name="state"
                      type="list"
@@ -14,11 +31,6 @@
                      <option value="-2">JTRASHED</option>
               </field>
 
-              <field name="ordering"
-                     type="ordering"
-                     label="JFIELD_ORDERING_LABEL"
-                     table="#__boilerplate_boilerplate" />
-
               <field name="language"
                      type="contentlanguage"
                      label="JFIELD_LANGUAGE_LABEL">
@@ -30,17 +42,6 @@
                      label="JGLOBAL_FIELD_VERSION_NOTE_LABEL"
                      maxlength="255" />
 
-              <field name="name"
-                     type="text"
-                     label="COM_BOILERPLATE_FIELD_NAME_LABEL"
-                     required="true" />
-
-              <field name="alias"
-                     type="text"
-                     label="JFIELD_ALIAS_LABEL"
-                     description="JFIELD_ALIAS_DESC"
-                     hint="JFIELD_ALIAS_PLACEHOLDER" />
-
               <field name="description"
                      type="editor"
                      label="JGLOBAL_DESCRIPTION"
@@ -49,8 +50,9 @@
                      hide="readmore,pagebreak,module,article,contact,menu" />
 
               <field name="ordering"
-                     type="hidden"
-                     default="0" />
+                     type="ordering"
+                     label="JFIELD_ORDERING_LABEL"
+                     table="#__boilerplate_boilerplate" />
        </fieldset>
 
        <fieldset name="publish"
