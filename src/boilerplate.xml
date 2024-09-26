@@ -56,11 +56,11 @@
         </submenu>
     </administration>
 
-    <!-- <files folder="components/com_boilerplate">
+    <files folder="components/com_boilerplate">
         <folder>src</folder>
         <folder>tmpl</folder>
     </files>
-
+    <!-- 
     <languages folder="language">
         <language tag="en-GB">en-GB/com_boilerplate.ini</language>
     </languages> -->
