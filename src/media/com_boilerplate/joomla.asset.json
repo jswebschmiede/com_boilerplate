@@ -16,9 +16,9 @@
             "version": "1.0.0"
         },
         {
-            "name": "com_boilerplate.global",
+            "name": "com_boilerplate.style",
             "type": "style",
-            "uri": "com_boilerplate/global.min.css",
+            "uri": "com_boilerplate/style.min.css",
             "version": "1.0.0"
         }
     ]
