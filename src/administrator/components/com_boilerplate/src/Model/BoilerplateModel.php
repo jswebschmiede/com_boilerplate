@@ -227,6 +227,6 @@ class BoilerplateModel extends AdminModel
 	 */
 	public function getFormFactory(): FormFactoryInterface
 	{
-		return Factory::getContainer()->get(FormFactoryInterface::class);
+		return parent::getFormFactory();
 	}
 }

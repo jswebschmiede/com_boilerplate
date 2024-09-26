@@ -12,9 +12,12 @@ namespace Joomla\Component\Boilerplate\Administrator\Model;
 
 defined('_JEXEC') or die;
 
+use Joomla\CMS\Table\Table;
 use Joomla\Database\DatabaseQuery;
 use Joomla\Database\ParameterType;
 use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Form\FormFactoryInterface;
 
 /**
  * Methods supporting a list of boilerplate records.
@@ -37,12 +40,19 @@ class BoilerplatesModel extends ListModel
 			$config['filter_fields'] = [
 				'id',
 				'a.id',
-				'title',
-				'a.title',
+				'name',
+				'a.name',
+				'alias',
+				'a.alias',
 				'state',
 				'a.state',
 				'ordering',
-				'a.ordering'
+				'a.ordering',
+				'language',
+				'a.language',
+				'published',
+				'created',
+				'a.created',
 			];
 		}
 
@@ -73,23 +83,36 @@ class BoilerplatesModel extends ListModel
 		$query->leftJoin($db->quoteName('#__users', 'b') . ' ON b.id = a.created_by');
 
 		// Filter by published state
-		$published = $this->getState('filter.state');
+		$published = $this->getState('filter.published');
 
 		if (is_numeric($published)) {
 			$query->where($db->quoteName('a.state') . ' = :published')
 				->bind(':published', $published, ParameterType::INTEGER);
+		} elseif ($published === '') {
+			$query->where($db->quoteName('a.state') . ' IN (0, 1)');
 		}
 
-		$search = $this->getState('filter.search');
+		// Filter by search in title
+		if ($search = $this->getState('filter.search')) {
+			if (stripos($search, 'id:') === 0) {
+				$search = (int) substr($search, 3);
+				$query->where($db->quoteName('a.id') . ' = :search')
+					->bind(':search', $search, ParameterType::INTEGER);
+			} else {
+				$search = '%' . str_replace(' ', '%', trim($search)) . '%';
+				$query->where('(' . $db->quoteName('a.name') . ' LIKE :search1 OR ' . $db->quoteName('a.alias') . ' LIKE :search2)')
+					->bind([':search1', ':search2'], $search);
+			}
+		}
 
-		if (!empty($search)) {
-			$search = $db->quote('%' . $db->escape($search, true) . '%');
-			$query->where($db->quoteName('a.title') . ' LIKE :search')
-				->bind(':search', $search, ParameterType::STRING);
+		// Filter on the language.
+		if ($language = $this->getState('filter.language')) {
+			$query->where($db->quoteName('a.language') . ' = :language')
+				->bind(':language', $language);
 		}
 
 		// Add the list ordering clause.
-		$orderCol = $this->state->get('list.ordering', 'a.ordering');
+		$orderCol = $this->state->get('list.ordering', 'a.name');
 		$orderDirn = $this->state->get('list.direction', 'ASC');
 
 		$query->order($db->escape($orderCol) . ' ' . $db->escape($orderDirn));
@@ -117,23 +140,44 @@ class BoilerplatesModel extends ListModel
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
 		$id .= ':' . $this->getState('filter.published');
+		$id .= ':' . $this->getState('filter.language');
 
 		return parent::getStoreId($id);
 	}
 
 	/**
-	 * Summary of populateState
-	 * @param mixed $ordering
-	 * @param mixed $direction
-	 * @return void
+	 * Returns a reference to the a Table object, always creating it.
+	 *
+	 * @param   string  $type    The table type to instantiate
+	 * @param   string  $prefix  A prefix for the table class name. Optional.
+	 * @param   array   $config  Configuration array for model. Optional.
+	 *
+	 * @return  Table  A Table object
+	 *
+	 * @since   1.6
 	 */
-	protected function populateState($ordering = 'a.id', $direction = 'asc'): void
+	public function getTable($type = 'Boilerplate', $prefix = 'Administrator', $config = []): Table
 	{
-		$search = $this->getUserStateFromRequest($this->context . '.filter.search', 'filter_search');
-		$this->setState('filter.search', $search);
+		return parent::getTable($type, $prefix, $config);
+	}
 
-		$published = $this->getUserStateFromRequest($this->context . '.filter.published', 'filter_published', '');
-		$this->setState('filter.published', $published);
+
+	/**
+	 * Method to auto-populate the model state.
+	 *
+	 * Note. Calling getState in this method will result in recursion.
+	 *
+	 * @param   string  $ordering   An optional ordering field.
+	 * @param   string  $direction  An optional direction (asc|desc).
+	 *
+	 * @return  void
+	 *
+	 * @since   1.6
+	 */
+	protected function populateState($ordering = 'a.name', $direction = 'asc')
+	{
+		// Load the parameters.
+		$this->setState('params', ComponentHelper::getParams('com_boilerplate'));
 
 		// List state information.
 		parent::populateState($ordering, $direction);
@@ -145,8 +189,15 @@ class BoilerplatesModel extends ListModel
 	 */
 	public function getItems(): array
 	{
-		$items = parent::getItems();
+		return parent::getItems();
+	}
 
-		return $items;
+	/**
+	 * Summary of getFormFactory
+	 * @return FormFactoryInterface
+	 */
+	public function getFormFactory(): FormFactoryInterface
+	{
+		return parent::getFormFactory();
 	}
 }

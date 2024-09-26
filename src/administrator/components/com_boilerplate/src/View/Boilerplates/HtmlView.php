@@ -18,6 +18,7 @@ use Joomla\Registry\Registry;
 use Joomla\CMS\Toolbar\Toolbar;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\ToolbarHelper;
+use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
@@ -141,6 +142,12 @@ class HtmlView extends BaseHtmlView
 		}
 
 		$this->addToolbar();
+
+		// We do not need to filter by language when multilingual is disabled
+		if (!Multilanguage::isEnabled()) {
+			unset($this->activeFilters['language']);
+			$this->filterForm->removeField('language', 'filter');
+		}
 
 		parent::display($tpl);
 	}
