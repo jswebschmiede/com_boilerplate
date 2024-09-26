@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS `#__boilerplate_boilerplate` (
 	`id` int(10) NOT NULL AUTO_INCREMENT,
+	`catid` int unsigned NOT NULL DEFAULT 0,
 	`name` varchar(255) NOT NULL,
 	`alias` varchar(400) NOT NULL DEFAULT '',
 	`description` text,
@@ -18,4 +19,4 @@ CREATE TABLE IF NOT EXISTS `#__boilerplate_boilerplate` (
 	INDEX `idx_state` (`state`),
 	INDEX `idx_language` (`language`),
 	PRIMARY KEY (`id`)
-) ENGINE = InnoDB COMMENT = '' DEFAULT COLLATE = utf8_general_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 DEFAULT COLLATE = utf8mb4_unicode_ci;

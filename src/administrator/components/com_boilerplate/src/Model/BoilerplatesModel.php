@@ -53,6 +53,11 @@ class BoilerplatesModel extends ListModel
 				'published',
 				'created',
 				'a.created',
+				'catid',
+				'a.catid',
+				'category_title',
+				'level',
+				'c.level',
 			];
 		}
 
@@ -60,9 +65,36 @@ class BoilerplatesModel extends ListModel
 	}
 
 	/**
+	 * Method to get the maximum ordering value for each category.
+	 *
+	 * @return  array
+	 *
+	 * @since   1.6
+	 */
+	public function &getCategoryOrders(): array
+	{
+		if (!isset($this->cache['categoryorders'])) {
+			$db = $this->getDatabase();
+			$query = $db->getQuery(true)
+				->select(
+					[
+						'MAX(' . $db->quoteName('ordering') . ') AS ' . $db->quoteName('max'),
+						$db->quoteName('catid'),
+					]
+				)
+				->from($db->quoteName('#__boilerplate_boilerplate'))
+				->group($db->quoteName('catid'));
+			$db->setQuery($query);
+			$this->cache['categoryorders'] = $db->loadAssocList('catid', 0);
+		}
+
+		return $this->cache['categoryorders'];
+	}
+
+	/**
 	 * Build an SQL query to load the list data.
 	 *
-	 * @return  \Joomla\Database\DatabaseQuery
+	 * @return  DatabaseQuery
 	 *
 	 * @since   1.0.0
 	 */
@@ -73,23 +105,55 @@ class BoilerplatesModel extends ListModel
 
 		// Select the required fields from the table.
 		$query->select(
-			$this->getState('list.select', 'a.*')
-		);
-
-		$query->from($db->quoteName('#__boilerplate_boilerplate', 'a'));
-
-		$query->select('b.name AS `created_by`');
-
-		$query->leftJoin($db->quoteName('#__users', 'b') . ' ON b.id = a.created_by');
+			$this->getState(
+				'list.select',
+				[
+					$db->quoteName('a.id'),
+					$db->quoteName('a.name'),
+					$db->quoteName('a.alias'),
+					$db->quoteName('a.catid'),
+					$db->quoteName('a.state'),
+					$db->quoteName('a.ordering'),
+					$db->quoteName('a.language'),
+					$db->quoteName('a.metakey'),
+					$db->quoteName('a.created_by'),
+					$db->quoteName('a.created'),
+					$db->quoteName('a.modified'),
+					$db->quoteName('a.modified_by'),
+				]
+			)
+		)
+			->select(
+				[
+					$db->quoteName('l.title', 'language_title'),
+					$db->quoteName('l.image', 'language_image'),
+					$db->quoteName('c.title', 'category_title'),
+					$db->quoteName('u.name', 'author'),
+				]
+			)
+			->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
+			->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
+			->join('LEFT', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
+			->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'));
 
 		// Filter by published state
-		$published = $this->getState('filter.published');
+		$published = (string) $this->getState('filter.published');
 
 		if (is_numeric($published)) {
+			$published = (int) $published;
 			$query->where($db->quoteName('a.state') . ' = :published')
 				->bind(':published', $published, ParameterType::INTEGER);
 		} elseif ($published === '') {
 			$query->where($db->quoteName('a.state') . ' IN (0, 1)');
+		}
+
+		// Filter by category.
+		$categoryId = $this->getState('filter.category_id');
+
+		if (is_numeric($categoryId)) {
+			$categoryId = (int) $categoryId;
+			$query->where($db->quoteName('a.catid') . ' = :categoryId')
+				->bind(':categoryId', $categoryId, ParameterType::INTEGER);
 		}
 
 		// Filter by search in title
@@ -111,15 +175,20 @@ class BoilerplatesModel extends ListModel
 				->bind(':language', $language);
 		}
 
+		// Filter on the level.
+		if ($level = (int) $this->getState('filter.level')) {
+			$query->where($db->quoteName('c.level') . ' <= :level')
+				->bind(':level', $level, ParameterType::INTEGER);
+		}
+
 		// Add the list ordering clause.
 		$orderCol = $this->state->get('list.ordering', 'a.name');
 		$orderDirn = $this->state->get('list.direction', 'ASC');
 
-		$query->order($db->escape($orderCol) . ' ' . $db->escape($orderDirn));
-
-		if ($orderCol === 'name') {
+		if ($orderCol === 'a.ordering' || $orderCol === 'category_title') {
 			$ordering = [
-				$db->quoteName('a.name') . ' ' . $db->escape($orderDirn),
+				$db->quoteName('c.title') . ' ' . $db->escape($orderDirn),
+				$db->quoteName('a.ordering') . ' ' . $db->escape($orderDirn),
 			];
 		} else {
 			$ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);
@@ -140,7 +209,9 @@ class BoilerplatesModel extends ListModel
 		// Compile the store id.
 		$id .= ':' . $this->getState('filter.search');
 		$id .= ':' . $this->getState('filter.published');
+		$id .= ':' . $this->getState('filter.category_id');
 		$id .= ':' . $this->getState('filter.language');
+		$id .= ':' . $this->getState('filter.level');
 
 		return parent::getStoreId($id);
 	}

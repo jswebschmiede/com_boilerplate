@@ -106,12 +106,12 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 								data-direction="<?php echo strtolower($listDirn); ?>" data-nested="true" <?php endif; ?>>
 							<?php foreach ($items as $i => $item):
 								$ordering = ($listOrder == 'ordering');
-								$canCheckin = $user->authorise('core.manage', 'com_checkin') || $item->checked_out == $userId || is_null($item->checked_out);
+								$item->cat_link = Route::_('index.php?option=com_categories&extension=com_banners&task=edit&type=other&cid[]=' . $item->catid);
 								$canCreate = $user->authorise('core.create', 'com_boilerplate');
 								$canEdit = $user->authorise('core.edit', 'com_boilerplate');
 								$canChange = $user->authorise('core.edit.state', 'com_boilerplate');
 								?>
-								<tr class="row<?php echo $i % 2; ?>" data-draggable-group="1">
+								<tr class="row<?php echo $i % 2; ?>" data-draggable-group="<?php echo $item->catid; ?>">
 									<td class="text-center">
 										<?php echo HTMLHelper::_('grid.id', $i, $item->id); ?>
 									</td>
@@ -140,13 +140,25 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 									</td>
 
 									<th scope="row" class="has-context">
-										<a class="hasTooltip d-inline-flex align-items-center gap-1"
-											href="<?php echo Route::_('index.php?option=com_boilerplate&task=boilerplate.edit&id=' . $item->id); ?>"
-											title="<?php echo Text::_('COM_BOILERPLATE_EDIT') . ' ' . $this->escape($item->name); ?>"
-											data-bs-placement="top">
-											<?php echo $editIcon; ?>
-											<?php echo $this->escape($item->name); ?>
-										</a>
+										<div class="break-word">
+											<?php if ($canEdit): ?>
+												<a class="hasTooltip d-inline-flex align-items-center gap-1"
+													href="<?php echo Route::_('index.php?option=com_boilerplate&task=boilerplate.edit&id=' . $item->id); ?>"
+													title="<?php echo Text::_('JACTION_EDIT'); ?> <?php echo $this->escape($item->name); ?>"
+													data-bs-placement="top">
+													<?php echo $editIcon; ?>
+													<?php echo $this->escape($item->name); ?>
+												</a>
+											<?php else: ?>
+												<?php echo $this->escape($item->name); ?>
+											<?php endif; ?>
+											<div class="small break-word">
+												<?php echo Text::sprintf('JGLOBAL_LIST_ALIAS', $this->escape($item->alias)); ?>
+											</div>
+											<div class="small">
+												<?php echo Text::_('JCATEGORY') . ': ' . $this->escape($item->category_title); ?>
+											</div>
+										</div>
 									</th>
 
 									<td class="created small">
@@ -160,7 +172,7 @@ $editIcon = '<span class="fa fa-pen-square mr-2" aria-hidden="true"></span>';
 									<?php endif; ?>
 
 									<td class="small">
-										<?php echo $item->created_by; ?>
+										<?php echo $item->author; ?>
 									</td>
 
 									<td class="id d-none d-md-table-cell">

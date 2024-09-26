@@ -47,7 +47,12 @@
         <submenu>
             <menu link="option=com_boilerplate&amp;view=boilerplates"
                   view="boilerplates">
-                COM_BOILERPLATE_MENU_BOILERPLATE</menu>
+                COM_BOILERPLATE_MENU_BOILERPLATE
+            </menu>
+            <menu link="option=com_categories&amp;extension=com_boilerplate"
+                  view="categories">
+                COM_BOILERPLATE_MENU_CATEGORIES
+            </menu>
         </submenu>
     </administration>
 

@@ -26,7 +26,7 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 	 * Indicates that columns fully support the NULL value in the database
 	 *
 	 * @var    boolean
-	 * @since  4.0.0
+	 * @since   1.0.0
 	 */
 	protected $_supportNullValue = true;
 
@@ -36,7 +36,7 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 	 * @param   DatabaseDriver        $db          Database connector object
 	 * @param   ?DispatcherInterface  $dispatcher  Event dispatcher for this table
 	 *
-	 * @since   1.5
+	 * @since   1.0.0
 	 */
 	public function __construct(DatabaseDriver $db, DispatcherInterface $dispatcher = null)
 	{
@@ -54,7 +54,7 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 	 * @return  boolean
 	 *
 	 * @see     Table::check
-	 * @since   1.5
+	 * @since   1.0.0
 	 */
 	public function check(): bool
 	{
@@ -81,9 +81,25 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 			$this->alias = Factory::getDate()->format('Y-m-d-H-i-s');
 		}
 
+		// Check for a valid category.
+		if (!$this->catid = (int) $this->catid) {
+			$this->setError(Text::_('JLIB_DATABASE_ERROR_CATEGORY_REQUIRED'));
+
+			return false;
+		}
+
 		// Set created date if not set.
 		if (!(int) $this->created) {
 			$this->created = Factory::getDate()->toSql();
+		}
+
+		// Set ordering
+		if ($this->state < 0) {
+			// Set ordering to 0 if state is archived or trashed
+			$this->ordering = 0;
+		} elseif (empty($this->ordering)) {
+			// Set ordering to last if ordering was 0
+			$this->ordering = self::getNextOrder($this->_db->quoteName('catid') . ' = ' . ((int) $this->catid) . ' AND ' . $this->_db->quoteName('state') . ' >= 0');
 		}
 
 		// Set modified to created if not set
@@ -94,15 +110,6 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 		// Set modified_by to created_by if not set
 		if (empty($this->modified_by)) {
 			$this->modified_by = $this->created_by;
-		}
-
-		// Set ordering
-		if ($this->state < 0) {
-			// Set ordering to 0 if state is archived or trashed
-			$this->ordering = 0;
-		} elseif (empty($this->ordering)) {
-			// Set ordering to last if ordering was 0
-			$this->ordering = self::getNextOrder($this->_db->quoteName('state') . ' >= 0');
 		}
 
 		return true;
@@ -122,23 +129,32 @@ class BoilerplateTable extends Table implements VersionableTableInterface
 		// Verify that the alias is unique
 		$table = new self($db, $this->getDispatcher());
 
-		if ($table->load(['alias' => $this->alias]) && ($table->id != $this->id || $this->id == 0)) {
+		if ($table->load(['alias' => $this->alias, 'catid' => $this->catid]) && ($table->id != $this->id || $this->id == 0)) {
 			$this->setError(Text::_('COM_BOILERPLATE_ERROR_UNIQUE_ALIAS'));
 
 			return false;
 		}
 
-		return parent::store($updateNulls);
+		// Store the new row
+		$result = parent::store($updateNulls);
+
+		// Need to reorder ?
+		if ($result && !empty($this->_reorderConditions)) {
+			// Reorder the oldrow
+			$this->reorder($this->_db->quoteName('catid') . ' = ' . ((int) $this->catid) . ' AND ' . $this->_db->quoteName('state') . ' >= 0');
+		}
+
+		return $result;
 	}
 
 	/**
 	 * Get the type alias for the history table
 	 *
-	 * @return  string  The alias as described above
+	 * @return  string|null  The alias as described above
 	 *
-	 * @since   4.0.0
+	 * @since   1.0.0
 	 */
-	public function getTypeAlias()
+	public function getTypeAlias(): string|null
 	{
 		return $this->typeAlias;
 	}

@@ -16,13 +16,13 @@ use Joomla\CMS\Form\Form;
 use Joomla\CMS\Language\Text;
 use Joomla\Registry\Registry;
 use Joomla\CMS\Toolbar\Toolbar;
+use Joomla\CMS\Helper\ContentHelper;
 use Joomla\CMS\Pagination\Pagination;
 use Joomla\CMS\Toolbar\ToolbarHelper;
 use Joomla\CMS\Language\Multilanguage;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\Toolbar\Button\DropdownButton;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Joomla\Component\Content\Administrator\Helper\ContentHelper;
 use Joomla\Component\Boilerplate\Administrator\Model\BoilerplatesModel;
 
 /**
@@ -32,37 +32,11 @@ use Joomla\Component\Boilerplate\Administrator\Model\BoilerplatesModel;
  */
 class HtmlView extends BaseHtmlView
 {
-
-
 	/**
-	 * An array of items
-	 *
-	 * @var    array
-	 * @since  1.6
-	 */
-	protected $items = [];
-
-	/**
-	 * The pagination object
-	 *
-	 * @var    Pagination
-	 * @since  1.6
-	 */
-	protected $pagination;
-
-	/**
-	 * The model state
-	 *
-	 * @var    Registry
-	 * @since  1.6
-	 */
-	protected $state;
-
-	/**
-	 * Filter form
+	 * The search tools form
 	 *
 	 * @var    Form
-	 * @since  1.6
+	 * @since  1.0.0
 	 */
 	public $filterForm;
 
@@ -70,15 +44,47 @@ class HtmlView extends BaseHtmlView
 	 * The active search filters
 	 *
 	 * @var    array
-	 * @since  1.6
+	 * @since  1.0.0
 	 */
 	public $activeFilters = [];
+
+	/**
+	 * Category data
+	 *
+	 * @var    array
+	 * @since  1.0.0
+	 */
+	protected $categories = [];
+
+	/**
+	 * An array of items
+	 *
+	 * @var    array
+	 * @since  1.0.0
+	 */
+	protected $items = [];
+
+	/**
+	 * The pagination object
+	 *
+	 * @var    Pagination
+	 * @since  1.0.0
+	 */
+	protected $pagination;
+
+	/**
+	 * The model state
+	 *
+	 * @var    Registry
+	 * @since  1.0.0
+	 */
+	protected $state;
 
 	/**
 	 * Is this view an Empty State
 	 *
 	 * @var  boolean
-	 * @since 4.0.0
+	 * @since 1.0.0
 	 */
 	private $isEmptyState = false;
 
@@ -120,13 +126,14 @@ class HtmlView extends BaseHtmlView
 	 *
 	 * @return  void
 	 *
-	 * @since   1.6
+	 * @since   1.0.0
 	 * @throws  \Exception
 	 */
 	public function display($tpl = null): void
 	{
 		/** @var BoilerplatesModel $model */
 		$model = $this->getModel();
+		$this->categories = $model->getCategoryOrders();
 		$this->items = $model->getItems();
 		$this->pagination = $model->getPagination();
 		$this->state = $model->getState();
@@ -137,7 +144,8 @@ class HtmlView extends BaseHtmlView
 			$this->setLayout('emptystate');
 		}
 
-		if (count($errors = $this->get('Errors'))) {
+		// Check for errors.
+		if (\count($errors = $this->get('Errors'))) {
 			throw new GenericDataException(implode("\n", $errors), 500);
 		}
 
@@ -155,13 +163,13 @@ class HtmlView extends BaseHtmlView
 	/**
 	 * Add the page title and toolbar.
 	 *
-	 * @return void
+	 * @return  void
 	 *
-	 * @since  1.6
+	 * @since   1.0.0
 	 */
 	protected function addToolbar(): void
 	{
-		$canDo = ContentHelper::getActions('com_boilerplate');
+		$canDo = ContentHelper::getActions('com_boilerplate', 'category', $this->state->get('filter.category_id'));
 		$user = $this->getCurrentUser();
 		$toolbar = Toolbar::getInstance();
 
@@ -211,7 +219,7 @@ class HtmlView extends BaseHtmlView
 
 			// Add a batch button
 			if (
-				$user->authorise('core.create', 'com_banners')
+				$user->authorise('core.create', 'com_boilerplate')
 				&& $user->authorise('core.edit', 'com_boilerplate')
 				&& $user->authorise('core.edit.state', 'com_boilerplate')
 			) {

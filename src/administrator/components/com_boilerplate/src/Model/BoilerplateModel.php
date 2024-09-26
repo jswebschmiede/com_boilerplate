@@ -18,6 +18,7 @@ use Joomla\String\StringHelper;
 use Joomla\CMS\MVC\Model\AdminModel;
 use Joomla\CMS\Form\FormFactoryInterface;
 use Joomla\CMS\Versioning\VersionableModelTrait;
+use Joomla\Component\Categories\Administrator\Helper\CategoriesHelper;
 
 defined('_JEXEC') or die;
 
@@ -37,6 +38,23 @@ class BoilerplateModel extends AdminModel
 	 * @since  1.0.0
 	 */
 	public $typeAlias = 'com_boilerplate.boilerplate';
+
+	/**
+	 * Batch copy/move command. If set to false, the batch copy/move command is not supported
+	 *
+	 * @var  string
+	 */
+	protected $batch_copymove = 'category_id';
+
+	/**
+	 * Allowed batch commands
+	 *
+	 * @var  array
+	 */
+	protected $batch_commands = [
+		'client_id' => 'batchClient',
+		'language_id' => 'batchLanguage',
+	];
 
 	/**
 	 * Method to get the row form.
@@ -79,6 +97,13 @@ class BoilerplateModel extends AdminModel
 		// Don't allow to change the created_by user if not allowed to access com_users.
 		if (!$this->getCurrentUser()->authorise('core.manage', 'com_users')) {
 			$form->setFieldAttribute('created_by', 'filter', 'unset');
+		}
+
+		if ($this->canCreateCategory()) {
+			$form->setFieldAttribute('catid', 'allowAdd', 'true');
+
+			// Add a prefix for categories created on the fly.
+			$form->setFieldAttribute('catid', 'customPrefix', '#new#');
 		}
 
 		return $form;
@@ -218,6 +243,41 @@ class BoilerplateModel extends AdminModel
 
 			$data['state'] = 0;
 		}
+
+		// Create new category, if needed.
+		$createCategory = true;
+
+		// If category ID is provided, check if it's valid.
+		if (is_numeric($data['catid']) && $data['catid']) {
+			$createCategory = !CategoriesHelper::validateCategoryId($data['catid'], 'com_boilerplate');
+		}
+
+		// Save New Category
+		if ($createCategory && $this->canCreateCategory()) {
+			$category = [
+				// Remove #new# prefix, if exists.
+				'title' => strpos($data['catid'], '#new#') === 0 ? substr($data['catid'], 5) : $data['catid'],
+				'parent_id' => 1,
+				'extension' => 'com_boilerplate',
+				'language' => $data['language'],
+				'published' => 1,
+			];
+
+			/** @var \Joomla\Component\Categories\Administrator\Model\CategoryModel $categoryModel */
+			$categoryModel = Factory::getApplication()->bootComponent('com_categories')
+				->getMVCFactory()->createModel('Category', 'Administrator', ['ignore_request' => true]);
+
+			// Create new category.
+			if (!$categoryModel->save($category)) {
+				$this->setError($categoryModel->getError());
+
+				return false;
+			}
+
+			// Get the new category ID.
+			$data['catid'] = $categoryModel->getState('category.id');
+		}
+
 		return parent::save($data);
 	}
 
@@ -228,5 +288,17 @@ class BoilerplateModel extends AdminModel
 	public function getFormFactory(): FormFactoryInterface
 	{
 		return parent::getFormFactory();
+	}
+
+	/**
+	 * Is the user allowed to create an on the fly category?
+	 *
+	 * @return  boolean
+	 *
+	 * @since   1.0.0
+	 */
+	private function canCreateCategory(): bool
+	{
+		return $this->getCurrentUser()->authorise('core.create', 'com_boilerplate');
 	}
 }

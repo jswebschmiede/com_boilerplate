@@ -19,6 +19,15 @@
                      description="JFIELD_ALIAS_DESC"
                      hint="JFIELD_ALIAS_PLACEHOLDER" />
 
+              <field name="catid"
+                     type="categoryedit"
+                     label="JCATEGORY"
+                     extension="com_boilerplate"
+                     required="true"
+                     addfieldprefix="Joomla\Component\Categories\Administrator\Field"
+                     default=""
+                     class="advancedSelect" />
+
               <field name="state"
                      type="list"
                      label="JSTATUS"
