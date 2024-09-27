@@ -14,7 +14,6 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 
-
 defined('_JEXEC') or die;
 
 /**
@@ -77,10 +76,18 @@ class HtmlView extends BaseHtmlView
 		$this->params = $this->state->get('params');
 
 		foreach ($this->items as &$item) {
-			$item->link = Route::_("index.php?option=com_boilerplate&view=boilerplate&id={$item->id}");
+			$itemId = $this->getItemid($item->id);
+			$item->link = $itemId ? Route::_("index.php?Itemid={$itemId}") : Route::_("index.php?option=com_boilerplate&view=boilerplate&id={$item->id}");
 			$item->category_link = Route::_("index.php?option=com_boilerplate&view=category&id={$item->catid}");
 		}
 
 		parent::display($tpl);
+	}
+
+	protected function getItemid($id): ?int
+	{
+		$menu = Factory::getApplication()->getMenu();
+		$items = $menu->getItems('link', "index.php?option=com_boilerplate&view=boilerplate&id={$id}");
+		return !empty($items) ? $items[0]->id : null;
 	}
 }
