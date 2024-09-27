@@ -13,7 +13,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
 
-/** @var \Joomla\Component\Boilerplate\Site\View\Boilerplates\HtmlView $this */
+/** @var \Joomla\Component\Boilerplate\Site\View\Categories\HtmlView $this */
 
 /** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
@@ -21,7 +21,7 @@ $wa->useScript('com_boilerplate.main');
 $wa->useStyle('com_boilerplate.style');
 ?>
 
-<div class="com_boilerplate boilerplates">
+<div class="com_boilerplate categories">
 	<?php if ($this->params->get('show_page_heading')): ?>
 		<div class="row">
 			<div class="page-header mb-4">
