@@ -85,10 +85,16 @@ class Router extends RouterView
         $this->noIDs = (bool) $params->get('sef_ids');
 
         $boilerplates = new RouterViewConfiguration('boilerplates');
+        $boilerplates->setKey('id')->addLayout('overview');
+
         $this->registerView($boilerplates);
 
+        $categories = new RouterViewConfiguration('categories');
+        $categories->setKey('id');
+        $this->registerView($categories);
+
         $boilerplate = new RouterViewConfiguration('boilerplate');
-        $boilerplate->setKey('id')->setNestable();
+        $boilerplate->setKey('id')->setNestable()->setParent($categories, 'catid');
         $this->registerView($boilerplate);
 
         parent::__construct($app, $menu);
@@ -109,24 +115,29 @@ class Router extends RouterView
     {
         $segments = [];
 
-        // Sicherstellen, dass $query ein Array ist
         if (!is_array($query)) {
             return $segments;
         }
 
-        // Behandlung der 'boilerplates' Ansicht
+        if (isset($query['Itemid']) && isset($query['view'])) {
+            $menuItem = $this->menu->getItem($query['Itemid']);
+            if ($menuItem && $menuItem->query['view'] === $query['view']) {
+                unset($query['view']);
+                if (isset($query['id']) && isset($menuItem->query['id']) && $menuItem->query['id'] == $query['id']) {
+                    unset($query['id']);
+                }
+            }
+        }
+
         if (isset($query['view']) && $query['view'] === 'boilerplates') {
-            // Entfernen Sie 'view' aus der Query, da es die Standardansicht ist
             unset($query['view']);
             return $segments;
         }
 
-        // Behandlung der 'boilerplate' Ansicht
         if (isset($query['view']) && $query['view'] === 'boilerplate') {
             unset($query['view']);
 
             if (isset($query['id'])) {
-                // Abrufen des Alias aus der Datenbank
                 $dbQuery = $this->db->getQuery(true)
                     ->select($this->db->quoteName('alias'))
                     ->from($this->db->quoteName('#__boilerplate_boilerplate'))
@@ -156,11 +167,37 @@ class Router extends RouterView
     {
         $vars = [];
 
-        // Wenn es Segmente gibt, ist es wahrscheinlich der Alias eines Boilerplate
+        // Get menu items for this component
+        $items = $this->menu->getItems('component', 'com_boilerplate');
+
+        // Check if we have a menu item matching the first segment
+        if (!empty($segments[0])) {
+            foreach ($items as $item) {
+                if (isset($item->query['view']) && $item->query['view'] === 'boilerplate' && isset($item->query['id'])) {
+                    $dbQuery = $this->db->getQuery(true)
+                        ->select($this->db->quoteName('alias'))
+                        ->from($this->db->quoteName('#__boilerplate_boilerplate'))
+                        ->where($this->db->quoteName('id') . ' = :id')
+                        ->bind(':id', $item->query['id'], ParameterType::INTEGER);
+                    $this->db->setQuery($dbQuery);
+                    $alias = $this->db->loadResult();
+
+                    if ($alias === $segments[0]) {
+                        $vars['view'] = 'boilerplate';
+                        $vars['id'] = $item->query['id'];
+                        $vars['Itemid'] = $item->id;
+                        array_shift($segments);
+                        return $vars;
+                    }
+                }
+            }
+        }
+
+        // If there are segments, it's likely the alias of a Boilerplate
         if (count($segments) > 0) {
             $vars['view'] = 'boilerplate';
 
-            // Abrufen der ID aus der Datenbank mit dem Alias
+            // Retrieve the ID from the database using the alias
             $dbQuery = $this->db->getQuery(true)
                 ->select($this->db->quoteName('id'))
                 ->from($this->db->quoteName('#__boilerplate_boilerplate'))
@@ -172,14 +209,11 @@ class Router extends RouterView
             if ($id) {
                 $vars['id'] = $id;
             } else {
-                // Wenn keine passende ID gefunden wurde, setzen Sie auf die Standardansicht
                 $vars['view'] = 'boilerplates';
             }
 
-            // Entfernen Sie das verarbeitete Segment
             array_shift($segments);
         } else {
-            // Wenn es keine Segmente gibt, nehmen Sie an, es ist die Boilerplates-Ansicht
             $vars['view'] = 'boilerplates';
         }
 
@@ -200,26 +234,18 @@ class Router extends RouterView
     {
         $segments = [];
 
-        if (isset($query['view'])) {
-            $segments[] = $query['view'];
-        }
+        if (isset($query['id']) && isset($query['view']) && $query['view'] === 'boilerplate') {
+            // Retrieve the alias from the database
+            $dbQuery = $this->db->getQuery(true)
+                ->select($this->db->quoteName('alias'))
+                ->from($this->db->quoteName('#__boilerplate_boilerplate'))
+                ->where($this->db->quoteName('id') . ' = :id')
+                ->bind(':id', $query['id'], ParameterType::INTEGER);
+            $this->db->setQuery($dbQuery);
+            $alias = $this->db->loadResult();
 
-        if (isset($query['id'])) {
-            if ($query['view'] === 'boilerplate') {
-                // Abrufen des Alias aus der Datenbank
-                $dbQuery = $this->db->getQuery(true)
-                    ->select($this->db->quoteName('alias'))
-                    ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-                    ->where($this->db->quoteName('id') . ' = :id')
-                    ->bind(':id', $query['id'], ParameterType::INTEGER);
-                $this->db->setQuery($dbQuery);
-                $alias = $this->db->loadResult();
-
-                if ($alias) {
-                    $segments[] = $alias;
-                } elseif (!$this->noIDs) {
-                    $segments[] = $query['id'];
-                }
+            if ($alias) {
+                $segments[] = $alias;
             } elseif (!$this->noIDs) {
                 $segments[] = $query['id'];
             }
