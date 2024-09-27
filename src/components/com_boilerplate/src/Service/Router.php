@@ -16,7 +16,6 @@ use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Component\Router\RouterView;
-use Joomla\CMS\Categories\CategoryInterface;
 use Joomla\CMS\Component\Router\Rules\MenuRules;
 use Joomla\CMS\Component\Router\Rules\NomenuRules;
 use Joomla\CMS\Categories\CategoryFactoryInterface;
@@ -39,16 +38,16 @@ class Router extends RouterView
      *
      * @var    boolean
      */
-    protected $noIDs = false;
+    protected bool $noIDs = false;
 
     /**
      * The category factory
      *
      * @var CategoryFactoryInterface
      *
-     * @since  4.0.0
+     * @since   4.0.0
      */
-    private $categoryFactory;
+    private CategoryFactoryInterface $categoryFactory;
 
     /**
      * The category cache
@@ -57,7 +56,7 @@ class Router extends RouterView
      *
      * @since  4.0.0
      */
-    private $categoryCache = [];
+    private array $categoryCache = [];
 
     /**
      * The db
@@ -66,7 +65,7 @@ class Router extends RouterView
      *
      * @since  4.0.0
      */
-    private $db;
+    private DatabaseInterface $db;
 
     /**
      * Content Component router constructor
@@ -84,17 +83,16 @@ class Router extends RouterView
         $params = ComponentHelper::getParams('com_boilerplate');
         $this->noIDs = (bool) $params->get('sef_ids');
 
-        $boilerplates = new RouterViewConfiguration('boilerplates');
-        $boilerplates->setKey('id')->addLayout('overview');
-
-        $this->registerView($boilerplates);
-
         $categories = new RouterViewConfiguration('categories');
         $categories->setKey('id');
         $this->registerView($categories);
 
+        $category = new RouterViewConfiguration('category');
+        $category->setKey('id')->setParent($categories, 'catid')->setNestable();
+        $this->registerView($category);
+
         $boilerplate = new RouterViewConfiguration('boilerplate');
-        $boilerplate->setKey('id')->setNestable()->setParent($categories, 'catid');
+        $boilerplate->setKey('id')->setParent($category, 'catid');
         $this->registerView($boilerplate);
 
         parent::__construct($app, $menu);
@@ -121,17 +119,13 @@ class Router extends RouterView
 
         if (isset($query['Itemid']) && isset($query['view'])) {
             $menuItem = $this->menu->getItem($query['Itemid']);
+
             if ($menuItem && $menuItem->query['view'] === $query['view']) {
                 unset($query['view']);
-                if (isset($query['id']) && isset($menuItem->query['id']) && $menuItem->query['id'] == $query['id']) {
-                    unset($query['id']);
-                }
-            }
-        }
+                unset($query['id']);
 
-        if (isset($query['view']) && $query['view'] === 'boilerplates') {
-            unset($query['view']);
-            return $segments;
+                return $segments;
+            }
         }
 
         if (isset($query['view']) && $query['view'] === 'boilerplate') {
@@ -208,13 +202,8 @@ class Router extends RouterView
 
             if ($id) {
                 $vars['id'] = $id;
-            } else {
-                $vars['view'] = 'boilerplates';
             }
-
             array_shift($segments);
-        } else {
-            $vars['view'] = 'boilerplates';
         }
 
         return $vars;
@@ -230,7 +219,7 @@ class Router extends RouterView
      *
      * @return  array  An array of path segments
      */
-    public function getPath($query)
+    public function getPath($query): array
     {
         $segments = [];
 
