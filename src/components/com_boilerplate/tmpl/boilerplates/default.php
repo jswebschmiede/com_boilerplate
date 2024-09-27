@@ -19,6 +19,7 @@ use Joomla\CMS\Language\Text;
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
 $wa->useScript('com_boilerplate.main');
 $wa->useStyle('com_boilerplate.style');
+
 ?>
 
 <div class="com_boilerplate boilerplates">
@@ -49,6 +50,10 @@ $wa->useStyle('com_boilerplate.style');
 					<div><?php echo Text::_('JCATEGORY'); ?>: <?php echo $item->category_title; ?></div>
 				</div>
 				<?php echo $item->description; ?>
+
+				<a href="<?php echo $item->link; ?>" class="btn btn-primary">
+					More
+				</a>
 			</div>
 		</div>
 	<?php endforeach; ?>

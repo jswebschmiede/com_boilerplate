@@ -11,6 +11,7 @@
 namespace Joomla\Component\Boilerplate\Site\View\Boilerplates;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Language\Text;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 
@@ -78,6 +79,10 @@ class HtmlView extends BaseHtmlView
 		$this->params = $this->state->get('params');
 		$this->items = $model->getItems();
 		$this->pagination = $model->getPagination();
+
+		foreach ($this->items as &$item) {
+			$item->link = Route::_("index.php?option=com_boilerplate&view=boilerplate&id={$item->id}");
+		}
 
 		// Set the page heading
 		if ($menu) {
