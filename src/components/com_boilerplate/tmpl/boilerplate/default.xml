@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<metadata>
+	<layout title="COM_BOILERPLATE_BOILERPLATE_VIEW_DEFAULT_TITLE"
+			option="View">
+		<message>
+			<![CDATA[COM_BOILERPLATE_BOILERPLATE_VIEW_DEFAULT_DESC]]>
+		</message>
+	</layout>
+	<!-- Add fields to the request variables for the layout. -->
+	<fields name="request">
+		<fieldset name="request"
+				  addfieldprefix="Joomla\Component\Content\Administrator\Field">
+			<field name="id"
+				   type="sql"
+				   label="COM_BOILERPLATE_BOILERPLATE_ID_FIELD_LABEL"
+				   description="COM_BOILERPLATE_BOILERPLATE_ID_FIELD_DESC"
+				   query="SELECT id, name FROM #__boilerplate_boilerplate ORDER BY id ASC"
+				   key_field="id"
+				   value_field="name"
+				   required="true" />
+		</fieldset>
+	</fields>
+	<fields name="params">
+		<fieldset name="basic">
+
+			<!-- Define your basic params for the view here -->
+		</fieldset>
+	</fields>
+</metadata>
