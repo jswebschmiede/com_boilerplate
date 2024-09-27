@@ -6,11 +6,9 @@
 			<![CDATA[COM_BOILERPLATE_BOILERPLATES_VIEW_DEFAULT_DESC]]>
 		</message>
     </layout>
-    <config>
-        <fields name="params">
-            <fieldset name="basic">
-                <!-- Define your basic params for the view here -->
-            </fieldset>
-        </fields>
-    </config>
+    <fields name="params">
+        <fieldset name="basic">
+            <!-- Define your basic params for the view here -->
+        </fieldset>
+    </fields>
 </metadata>
