@@ -10,12 +10,14 @@
 
 namespace Joomla\Component\Boilerplate\Site\Service;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Component\Router\RouterView;
+use Joomla\CMS\Categories\CategoryInterface;
 use Joomla\CMS\Component\Router\Rules\MenuRules;
 use Joomla\CMS\Component\Router\Rules\NomenuRules;
 use Joomla\CMS\Categories\CategoryFactoryInterface;
@@ -103,143 +105,196 @@ class Router extends RouterView
     }
 
     /**
-     * Method to build the segment(s) for a boilerplate
+     * Method to get the segment(s) for a category
      *
-     * @param   array  $query  The request that is built right now
+     * @param   string  $id     ID of the category to retrieve the segments for
+     * @param   array   $query  The request that is built right now
      *
-     * @return  array  The segments of this item
+     * @return  array|string  The segments of this item
      */
-    public function build(&$query): array
+    public function getCategorySegment($id, $query): array|string
     {
-        $segments = [];
+        $category = $this->getCategories(['access' => true])->get($id);
 
-        if (!is_array($query)) {
-            return $segments;
-        }
+        if ($category) {
+            $path = array_reverse($category->getPath(), true);
+            $path[0] = '1:root';
 
-        if (isset($query['Itemid']) && isset($query['view'])) {
-            $menuItem = $this->menu->getItem($query['Itemid']);
-
-            if ($menuItem && $menuItem->query['view'] === $query['view']) {
-                unset($query['view']);
-                unset($query['id']);
-
-                return $segments;
-            }
-        }
-
-        if (isset($query['view']) && $query['view'] === 'boilerplate') {
-            unset($query['view']);
-
-            if (isset($query['id'])) {
-                $dbQuery = $this->db->getQuery(true)
-                    ->select($this->db->quoteName('alias'))
-                    ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-                    ->where($this->db->quoteName('id') . ' = :id')
-                    ->bind(':id', $query['id'], ParameterType::INTEGER);
-                $this->db->setQuery($dbQuery);
-                $alias = $this->db->loadResult();
-
-                if ($alias) {
-                    $segments[] = $alias;
-                    unset($query['id']);
+            if ($this->noIDs) {
+                foreach ($path as &$segment) {
+                    list($id, $segment) = explode(':', $segment, 2);
                 }
             }
+
+            return $path;
         }
 
-        return $segments;
+        return [];
     }
 
     /**
-     * Method to parse the segment(s) for a boilerplate
+     * Method to get the segment(s) for a category
      *
-     * @param   array  $segments  The segments of this item
+     * @param   string  $id     ID of the category to retrieve the segments for
+     * @param   array   $query  The request that is built right now
      *
-     * @return  array  The variables to be used in the request
+     * @return  array|string  The segments of this item
      */
-    public function parse(&$segments): array
+    public function getCategoriesSegment($id, $query): array|string
     {
-        $vars = [];
+        return $this->getCategorySegment($id, $query);
+    }
 
-        // Get menu items for this component
-        $items = $this->menu->getItems('component', 'com_boilerplate');
+    /**
+     * Method to get the segment(s) for an article
+     *
+     * @param   string  $id     ID of the article to retrieve the segments for
+     * @param   array   $query  The request that is built right now
+     *
+     * @return  array|string  The segments of this item
+     */
+    public function getBoilerplateSegment($id, $query)
+    {
+        if (!strpos($id, ':')) {
+            $id = (int) $id;
+            $alias = $this->getAlias($id);
+            if ($alias) {
+                $id .= ':' . $alias;
+            }
+        }
 
-        // Check if we have a menu item matching the first segment
-        if (!empty($segments[0])) {
-            foreach ($items as $item) {
-                if (isset($item->query['view']) && $item->query['view'] === 'boilerplate' && isset($item->query['id'])) {
-                    $dbQuery = $this->db->getQuery(true)
-                        ->select($this->db->quoteName('alias'))
-                        ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-                        ->where($this->db->quoteName('id') . ' = :id')
-                        ->bind(':id', $item->query['id'], ParameterType::INTEGER);
-                    $this->db->setQuery($dbQuery);
-                    $alias = $this->db->loadResult();
+        if ($this->noIDs) {
+            list($void, $segment) = explode(':', $id, 2);
+            return [$void => $segment];
+        }
 
-                    if ($alias === $segments[0]) {
-                        $vars['view'] = 'boilerplate';
-                        $vars['id'] = $item->query['id'];
-                        $vars['Itemid'] = $item->id;
-                        array_shift($segments);
-                        return $vars;
+        return [(int) $id => $id];
+    }
+
+    /**
+     * Method to get the segment(s) for a form
+     *
+     * @param   string  $id     ID of the article form to retrieve the segments for
+     * @param   array   $query  The request that is built right now
+     *
+     * @return  array|string  The segments of this item
+     *
+     * @since   3.7.3
+     */
+    public function getFormSegment($id, $query): array|string
+    {
+        return $this->getBoilerplateSegment($id, $query);
+    }
+
+    /**
+     * Method to get the id for a category
+     *
+     * @param   string  $segment  Segment to retrieve the ID for
+     * @param   array   $query    The request that is parsed right now
+     *
+     * @return  mixed   The id of this item or false
+     */
+    public function getCategoryId($segment, $query): bool|int
+    {
+        if (isset($query['id'])) {
+            $category = $this->getCategories(['access' => false])->get($query['id']);
+
+            if ($category) {
+                foreach ($category->getChildren() as $child) {
+                    if ($this->noIDs) {
+                        if ($child->alias == $segment) {
+                            return $child->id;
+                        }
+                    } else {
+                        if ($child->id == (int) $segment) {
+                            return $child->id;
+                        }
                     }
                 }
             }
         }
 
-        // If there are segments, it's likely the alias of a Boilerplate
-        if (count($segments) > 0) {
-            $vars['view'] = 'boilerplate';
-
-            // Retrieve the ID from the database using the alias
-            $dbQuery = $this->db->getQuery(true)
-                ->select($this->db->quoteName('id'))
-                ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-                ->where($this->db->quoteName('alias') . ' = :alias')
-                ->bind(':alias', $segments[0]);
-            $this->db->setQuery($dbQuery);
-            $id = $this->db->loadResult();
-
-            if ($id) {
-                $vars['id'] = $id;
-            }
-            array_shift($segments);
-        }
-
-        return $vars;
+        return false;
     }
 
     /**
-     * Get the path segments for a given query.
+     * Method to get the segment(s) for a category
      *
-     * This method is crucial for the MenuRules to function correctly.
-     * It defines how the router should break down a query into path segments.
+     * @param   string  $segment  Segment to retrieve the ID for
+     * @param   array   $query    The request that is parsed right now
      *
-     * @param   array  $query  The query parameters
-     *
-     * @return  array  An array of path segments
+     * @return  mixed   The id of this item or false
      */
-    public function getPath($query): array
+    public function getCategoriesId($segment, $query)
     {
-        $segments = [];
+        return $this->getCategoryId($segment, $query);
+    }
 
-        if (isset($query['id']) && isset($query['view']) && $query['view'] === 'boilerplate') {
-            // Retrieve the alias from the database
-            $dbQuery = $this->db->getQuery(true)
-                ->select($this->db->quoteName('alias'))
+    /**
+     * Method to get the segment(s) for an article
+     *
+     * @param   string  $segment  Segment of the article to retrieve the ID for
+     * @param   array   $query    The request that is parsed right now
+     *
+     * @return  mixed   The id of this item or false
+     */
+    public function getBoilerplateId($segment, $query)
+    {
+        if ($this->noIDs) {
+            $dbquery = $this->db->getQuery(true);
+            $dbquery->select($this->db->quoteName('id'))
                 ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-                ->where($this->db->quoteName('id') . ' = :id')
-                ->bind(':id', $query['id'], ParameterType::INTEGER);
-            $this->db->setQuery($dbQuery);
-            $alias = $this->db->loadResult();
+                ->where(
+                    [
+                        $this->db->quoteName('alias') . ' = :alias',
+                        $this->db->quoteName('catid') . ' = :catid',
+                    ]
+                )
+                ->bind(':alias', $segment)
+                ->bind(':catid', $query['id'], ParameterType::INTEGER);
+            $this->db->setQuery($dbquery);
 
-            if ($alias) {
-                $segments[] = $alias;
-            } elseif (!$this->noIDs) {
-                $segments[] = $query['id'];
-            }
+
+            return (int) $this->db->loadResult();
         }
 
-        return $segments;
+        return (int) $segment;
+    }
+
+    /**
+     * Method to get categories from cache
+     *
+     * @param   array  $options   The options for retrieving categories
+     *
+     * @return  CategoryInterface  The object containing categories
+     *
+     * @since   4.0.0
+     */
+    private function getCategories(array $options = []): CategoryInterface
+    {
+        $key = serialize($options);
+
+        if (!isset($this->categoryCache[$key])) {
+            $this->categoryCache[$key] = $this->categoryFactory->createCategory($options);
+        }
+
+        return $this->categoryCache[$key];
+    }
+
+    private function getAlias(int $id): string
+    {
+        $query = $this->db->getQuery(true)
+            ->select($this->db->quoteName('alias'))
+            ->from($this->db->quoteName('#__boilerplate_boilerplate'))
+            ->where($this->db->quoteName('id') . ' = :id')
+            ->bind(':id', $id, ParameterType::INTEGER);
+
+        $this->db->setQuery($query);
+
+        try {
+            return $this->db->loadResult() ?: '';
+        } catch (\RuntimeException $e) {
+            throw new \RuntimeException($e->getMessage(), $e->getCode());
+        }
     }
 }
