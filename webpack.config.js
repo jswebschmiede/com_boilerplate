@@ -3,6 +3,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const ZipPlugin = require('zip-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const webpack = require('webpack');
 const chalk = require('chalk');
 const logSymbols = require('log-symbols');
@@ -50,6 +51,47 @@ const createProgressBar = (percentage) => {
 
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
+    const joomlaPath = path.resolve(__dirname, '../../joomla');
+
+    const copyPatterns = [
+        {
+            from: 'src/administrator/components/com_boilerplate',
+            to: 'administrator/components/com_boilerplate',
+        },
+        {
+            from: 'src/components/com_boilerplate',
+            to: 'components/com_boilerplate',
+        },
+        {
+            from: 'src/media/com_boilerplate',
+            to: 'media/com_boilerplate',
+            globOptions: {
+                ignore: ['**/*.js', '**/*.css'], // Ignores JS and CSS files
+            },
+        },
+        { from: 'src/api', to: 'api', noErrorOnMissing: true },
+        { from: 'src/boilerplate.xml', to: 'boilerplate.xml' },
+    ];
+
+    if (!isProduction) {
+        copyPatterns.push(
+            {
+                from: 'dist/administrator/components/com_boilerplate',
+                to: path.join(joomlaPath, 'administrator/components/com_boilerplate'),
+                noErrorOnMissing: true,
+            },
+            {
+                from: 'dist/components/com_boilerplate',
+                to: path.join(joomlaPath, 'components/com_boilerplate'),
+                noErrorOnMissing: true,
+            },
+            {
+                from: 'dist/media/com_boilerplate',
+                to: path.join(joomlaPath, 'media/com_boilerplate'),
+                noErrorOnMissing: true,
+            },
+        );
+    }
 
     return {
         mode: isProduction ? 'production' : 'development',
@@ -86,26 +128,20 @@ module.exports = (env, argv) => {
             new MiniCssExtractPlugin({
                 filename: 'media/com_boilerplate/css/styles.min.css',
             }),
-            new CopyPlugin({
-                patterns: [
-                    {
-                        from: 'src/administrator/components/com_boilerplate',
-                        to: 'administrator/components/com_boilerplate',
-                    },
-                    {
-                        from: 'src/components/com_boilerplate',
-                        to: 'components/com_boilerplate',
-                    },
-                    {
-                        from: 'src/media/com_boilerplate',
-                        to: 'media/com_boilerplate',
-                        globOptions: {
-                            ignore: ['**/*.js', '**/*.css'], // Ignores JS and CSS files
-                        },
-                    },
-                    { from: 'src/api', to: 'api', noErrorOnMissing: true },
-                    { from: 'src/boilerplate.xml', to: 'boilerplate.xml' },
+            new CleanWebpackPlugin({
+                cleanOnceBeforeBuildPatterns: [
+                    path.join(joomlaPath, 'administrator/components/com_boilerplate/**/*'),
+                    path.join(joomlaPath, 'components/com_boilerplate/**/*'),
+                    path.join(joomlaPath, 'media/com_boilerplate/**/*'),
+                    `!${path.join(joomlaPath, 'administrator/components/com_boilerplate')}`,
+                    `!${path.join(joomlaPath, 'components/com_boilerplate')}`,
+                    `!${path.join(joomlaPath, 'media/com_boilerplate')}`,
                 ],
+                cleanAfterEveryBuildPatterns: [],
+                dangerouslyAllowCleanPatternsOutsideProject: true,
+            }),
+            new CopyPlugin({
+                patterns: copyPatterns,
             }),
             ...(isProduction
                 ? [
