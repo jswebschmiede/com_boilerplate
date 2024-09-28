@@ -203,7 +203,6 @@ class CategoriesModel extends ListModel
         // Merge category slug into each item
         foreach ($this->items as &$item) {
             $categoryNode = $categories->get($item->catid);
-            dump($categoryNode, $categoryNode->get('parent_id'));
             if ($categoryNode) {
                 $item->category_slug = $categoryNode->slug;
 
@@ -258,7 +257,7 @@ class CategoriesModel extends ListModel
 
         $user = $this->getCurrentUser();
 
-        if ((!$user->authorise('core.edit.state', 'com_boiler')) && (!$user->authorise('core.edit', 'com_boiler'))) {
+        if ((!$user->authorise('core.edit.state', 'com_boilerplate')) && (!$user->authorise('core.edit', 'com_boilerplate'))) {
             // Filter on published for those who do not have edit or edit.state rights.
             $this->setState('filter.published', ContentComponent::CONDITION_PUBLISHED);
         }
@@ -274,7 +273,7 @@ class CategoriesModel extends ListModel
         $this->setState('filter.language', Multilanguage::isEnabled());
 
         // Process show_noauth parameter
-        if ((!$params->get('show_noauth')) || (!ComponentHelper::getParams('com_boiler')->get('show_noauth'))) {
+        if ((!$params->get('show_noauth')) || (!ComponentHelper::getParams('com_boilerplate')->get('show_noauth'))) {
             $this->setState('filter.access', true);
         } else {
             $this->setState('filter.access', false);
