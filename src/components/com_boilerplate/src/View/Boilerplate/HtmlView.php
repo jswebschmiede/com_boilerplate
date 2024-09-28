@@ -13,8 +13,10 @@ namespace Joomla\Component\Boilerplate\Site\View\Boilerplate;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\MVC\View\GenericDataException;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\Component\Boilerplate\Site\Helper\RouteHelper;
 
 /**
  * HTML Boilerplate View class for the Boilerplate component
@@ -72,6 +74,7 @@ class HtmlView extends BaseHtmlView
 
 		// Add router helpers.
 		$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
+		$item->category_link = Route::_(RouteHelper::getCategoryRoute($item->catid, $item->language));
 
 		// No link for ROOT category
 		if ($item->parent_alias === 'root') {

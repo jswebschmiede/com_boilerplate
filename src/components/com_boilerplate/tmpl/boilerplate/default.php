@@ -44,7 +44,9 @@ $wa->useStyle('com_boilerplate.style');
 					<?php echo JDate::getInstance($this->item->created)->format('d.m.Y'); ?>
 				</time>
 				<div><?php echo Text::_('JAUTHOR'); ?>: <?php echo $this->item->author; ?></div>
-				<div><?php echo Text::_('JCATEGORY'); ?>: <?php echo $this->item->category_title; ?></div>
+				<div><?php echo Text::_('JCATEGORY'); ?>:
+					<a href="<?php echo $this->item->category_link; ?>"><?php echo $this->item->category_title; ?></a>
+				</div>
 			</div>
 			<?php echo $this->item->description; ?>
 		</div>
