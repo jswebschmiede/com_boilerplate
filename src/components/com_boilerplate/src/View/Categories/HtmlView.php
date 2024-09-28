@@ -13,6 +13,7 @@ namespace Joomla\Component\Boilerplate\Site\View\Categories;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\Component\Boilerplate\Site\Helper\RouteHelper;
 
 defined('_JEXEC') or die;
 
@@ -75,19 +76,19 @@ class HtmlView extends BaseHtmlView
 		$this->state = $model->getState();
 		$this->params = $this->state->get('params');
 
+
 		foreach ($this->items as &$item) {
-			$itemId = $this->getItemid($item->id);
-			$item->link = $itemId ? Route::_("index.php?Itemid={$itemId}") : Route::_("index.php?option=com_boilerplate&view=boilerplate&id={$item->id}");
-			$item->category_link = Route::_("index.php?option=com_boilerplate&view=category&id={$item->catid}");
+			$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
+
+			// No link for ROOT category
+			if ($item->parent_alias === 'root') {
+				$item->parent_id = null;
+			}
+
+			$item->link = Route::_(RouteHelper::getBoilerplateRoute($item->id, $item->catid, $item->language));
+			$item->category_link = Route::_(RouteHelper::getCategoryRoute($item->catid, $item->language));
 		}
 
 		parent::display($tpl);
-	}
-
-	protected function getItemid($id): ?int
-	{
-		$menu = Factory::getApplication()->getMenu();
-		$items = $menu->getItems('link', "index.php?option=com_boilerplate&view=boilerplate&id={$id}");
-		return !empty($items) ? $items[0]->id : null;
 	}
 }
