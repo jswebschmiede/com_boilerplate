@@ -162,11 +162,17 @@ class CategoriesModel extends ListModel
             $db->quoteName('c.alias', 'category_alias'),
             $db->quoteName('c.language', 'category_language'),
             $db->quoteName('u.name', 'author'),
+            $db->quoteName('parent.title', 'parent_title'),
+            $db->quoteName('parent.id', 'parent_id'),
+            $db->quoteName('parent.path', 'parent_route'),
+            $db->quoteName('parent.alias', 'parent_alias'),
+            $db->quoteName('parent.language', 'parent_language')
         ])
             ->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
             ->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
-            ->join('LEFT', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
+            ->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
             ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
+            ->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
             ->where($db->quoteName('a.catid') . ' IN (' . implode(',', $categoryIds) . ')');
 
         // Filter by published state
@@ -197,8 +203,10 @@ class CategoriesModel extends ListModel
         // Merge category slug into each item
         foreach ($this->items as &$item) {
             $categoryNode = $categories->get($item->catid);
+            dump($categoryNode, $categoryNode->get('parent_id'));
             if ($categoryNode) {
                 $item->category_slug = $categoryNode->slug;
+
             }
         }
 

@@ -73,6 +73,11 @@ class HtmlView extends BaseHtmlView
 		// Add router helpers.
 		$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
 
+		// No link for ROOT category
+		if ($item->parent_alias === 'root') {
+			$item->parent_id = null;
+		}
+
 		return parent::display($tpl);
 	}
 }

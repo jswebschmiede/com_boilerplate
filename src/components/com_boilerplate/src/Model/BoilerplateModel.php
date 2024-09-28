@@ -108,17 +108,22 @@ class BoilerplateModel extends ItemModel
 						$db->quoteName('l.title', 'language_title'),
 						$db->quoteName('l.image', 'language_image'),
 						$db->quoteName('c.title', 'category_title'),
-						$db->quoteName('c.path', 'category_route'),
 						$db->quoteName('c.alias', 'category_alias'),
+						$db->quoteName('c.access', 'category_access'),
 						$db->quoteName('c.language', 'category_language'),
-						$db->quoteName('c.published', 'category_published'),
 						$db->quoteName('u.name', 'author'),
+						$db->quoteName('parent.title', 'parent_title'),
+						$db->quoteName('parent.id', 'parent_id'),
+						$db->quoteName('parent.path', 'parent_route'),
+						$db->quoteName('parent.alias', 'parent_alias'),
+						$db->quoteName('parent.language', 'parent_language')
 					]
 				))
 					->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
 					->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
-					->join('LEFT', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
+					->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
 					->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
+					->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
 					->where($db->quoteName('a.id') . ' = :id')
 					->bind(':id', $pk, ParameterType::INTEGER);
 
