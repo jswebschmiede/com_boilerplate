@@ -55,7 +55,7 @@ class CategoriesModel extends ListModel
      */
     private $_parent = null;
 
-    protected $items = [];
+    protected $_items = [];
 
     /**
      * Constructor.
@@ -104,7 +104,7 @@ class CategoriesModel extends ListModel
      *
      * @return  string  A store id.
      */
-    protected function getStoreId($id = '')
+    protected function getStoreId($id = ''): string
     {
         // Compile the store id.
         $id .= ':' . $this->getState('filter.extension');
@@ -141,7 +141,7 @@ class CategoriesModel extends ListModel
 
         // Fetch all boilerplates for the extracted category IDs
         $query = $db->getQuery(true);
-        $query->select([
+        $query->select($this->getState('item.select', [
             $db->quoteName('a.id'),
             $db->quoteName('a.name'),
             $db->quoteName('a.alias'),
@@ -167,8 +167,8 @@ class CategoriesModel extends ListModel
             $db->quoteName('parent.path', 'parent_route'),
             $db->quoteName('parent.alias', 'parent_alias'),
             $db->quoteName('parent.language', 'parent_language')
-        ])
-            ->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
+        ]));
+        $query->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
             ->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
             ->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
             ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
@@ -198,10 +198,10 @@ class CategoriesModel extends ListModel
         $query->order($ordering);
 
         $db->setQuery($query);
-        $this->items = $db->loadObjectList();
+        $this->_items = $db->loadObjectList();
 
         // Merge category slug into each item
-        foreach ($this->items as &$item) {
+        foreach ($this->_items as &$item) {
             $categoryNode = $categories->get($item->catid);
             if ($categoryNode) {
                 $item->category_slug = $categoryNode->slug;
@@ -209,7 +209,7 @@ class CategoriesModel extends ListModel
             }
         }
 
-        return $this->items;
+        return $this->_items;
     }
 
     /**
