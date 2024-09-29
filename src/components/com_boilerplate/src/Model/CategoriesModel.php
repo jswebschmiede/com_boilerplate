@@ -55,42 +55,32 @@ class CategoriesModel extends ListModel
      */
     private $_parent = null;
 
-    protected $_items = [];
-
     /**
-     * Constructor.
+     * Method to auto-populate the model state.
      *
-     * @param   array  $config  An optional associative array of configuration settings.
+     * Note. Calling getState in this method will result in recursion.
      *
-     * @see     \Joomla\CMS\MVC\Model\BaseDatabaseModel
-     * @since   1.0.0
+     * @param   string  $ordering   The field to order on.
+     * @param   string  $direction  The direction to order on.
+     *
+     * @return  void
+     *
+     * @since   1.6
      */
-    public function __construct($config = [])
+    protected function populateState($ordering = null, $direction = null)
     {
-        if (empty($config['filter_fields'])) {
-            $config['filter_fields'] = [
-                'id',
-                'a.id',
-                'name',
-                'a.name',
-                'alias',
-                'a.alias',
-                'state',
-                'a.state',
-                'ordering',
-                'a.ordering',
-                'language',
-                'a.language',
-                'published',
-                'created',
-                'a.created',
-                'catid',
-                'a.catid',
-                'category_title',
-                'level',
-                'c.level',
-            ];
-        }
+        $app = Factory::getApplication();
+        $this->setState('filter.extension', $this->_extension);
+
+        // Get the parent id if defined.
+        $parentId = $app->getInput()->getInt('id');
+        $this->setState('filter.parentId', $parentId);
+
+        $params = $app->getParams();
+        $this->setState('params', $params);
+
+        $this->setState('filter.published', 1);
+        $this->setState('filter.access', true);
     }
 
     /**
@@ -109,6 +99,7 @@ class CategoriesModel extends ListModel
         // Compile the store id.
         $id .= ':' . $this->getState('filter.extension');
         $id .= ':' . $this->getState('filter.published');
+        $id .= ':' . $this->getState('filter.access');
         $id .= ':' . $this->getState('filter.parentId');
 
         return parent::getStoreId($id);
@@ -123,173 +114,29 @@ class CategoriesModel extends ListModel
      *
      * @since   1.6
      */
-    public function getItems($recursive = true): array
+    public function getItems(bool $recursive = false): mixed
     {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $categories = Categories::getInstance('Boilerplate');
-        $this->_parent = $categories->get($this->getState('filter.parentId', 'root'));
-        $children = $this->_parent->getChildren($recursive);
+        $store = $this->getStoreId();
 
-        // Extract category IDs
-        $categoryIds = array_map(function ($child) {
-            return $child->id;
-        }, $children);
-
-        if (empty($categoryIds)) {
-            return [];
-        }
-
-        // Fetch all boilerplates for the extracted category IDs
-        $query = $db->getQuery(true);
-        $query->select($this->getState('item.select', [
-            $db->quoteName('a.id'),
-            $db->quoteName('a.name'),
-            $db->quoteName('a.alias'),
-            $db->quoteName('a.catid'),
-            $db->quoteName('a.state'),
-            $db->quoteName('a.ordering'),
-            $db->quoteName('a.language'),
-            $db->quoteName('a.metakey'),
-            $db->quoteName('a.created_by'),
-            $db->quoteName('a.created'),
-            $db->quoteName('a.modified'),
-            $db->quoteName('a.modified_by'),
-            $db->quoteName('a.description'),
-            $db->quoteName('l.title', 'language_title'),
-            $db->quoteName('l.image', 'language_image'),
-            $db->quoteName('c.title', 'category_title'),
-            $db->quoteName('c.path', 'category_route'),
-            $db->quoteName('c.alias', 'category_alias'),
-            $db->quoteName('c.language', 'category_language'),
-            $db->quoteName('u.name', 'author'),
-            $db->quoteName('parent.title', 'parent_title'),
-            $db->quoteName('parent.id', 'parent_id'),
-            $db->quoteName('parent.path', 'parent_route'),
-            $db->quoteName('parent.alias', 'parent_alias'),
-            $db->quoteName('parent.language', 'parent_language')
-        ]));
-        $query->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
-            ->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
-            ->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
-            ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
-            ->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
-            ->where($db->quoteName('a.catid') . ' IN (' . implode(',', $categoryIds) . ')');
-
-        // Filter by published state
-        $condition = (int) $this->getState('filter.published');
-
-        // Category has to be published and article has to be published.
-        $query->where($db->quoteName('a.state') . ' = :condition')
-            ->bind(':condition', $condition, ParameterType::INTEGER);
-
-        // Add the list ordering clause.
-        $orderCol = $this->getState('list.ordering', 'a.name');
-        $orderDirn = $this->getState('list.direction', 'ASC');
-
-        if ($orderCol === 'a.ordering' || $orderCol === 'category_title') {
-            $ordering = [
-                $db->quoteName('c.title') . ' ' . $db->escape($orderDirn),
-                $db->quoteName('a.ordering') . ' ' . $db->escape($orderDirn),
-            ];
-        } else {
-            $ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);
-        }
-
-        $query->order($ordering);
-
-        $db->setQuery($query);
-        $this->_items = $db->loadObjectList();
-
-        // Merge category slug into each item
-        foreach ($this->_items as &$item) {
-            $categoryNode = $categories->get($item->catid);
-            if ($categoryNode) {
-                $item->category_slug = $categoryNode->slug;
-
-            }
-        }
-
-        return $this->_items;
-    }
-
-    /**
-     * Method to auto-populate the model state.
-     *
-     * Note. Calling getState in this method will result in recursion.
-     *
-     * @param   string  $ordering   The field to order on.
-     * @param   string  $direction  The direction to order on.
-     *
-     * @return  void
-     *
-     * @since   1.6
-     */
-    protected function populateState($ordering = 'ordering', $direction = 'ASC'): void
-    {
         $app = Factory::getApplication();
-        $input = $app->input;
+        $menu = $app->getMenu();
+        $active = $menu->getActive();
 
-        // List state information
-        $value = $input->get('limit', $app->get('list_limit', 0), 'uint');
-        $this->setState('list.limit', $value);
-
-        $value = $input->get('limitstart', 0, 'uint');
-        $this->setState('list.start', $value);
-
-        $value = $input->get('filter_tag', 0, 'uint');
-        $this->setState('filter.tag', $value);
-
-        $orderCol = $input->get('filter_order', 'a.ordering');
-
-        if (!\in_array($orderCol, $this->filter_fields)) {
-            $orderCol = 'a.ordering';
-        }
-
-        $this->setState('list.ordering', $orderCol);
-
-        $listOrder = $input->get('filter_order_Dir', 'ASC');
-
-        if (!\in_array(strtoupper($listOrder), ['ASC', 'DESC', ''])) {
-            $listOrder = 'ASC';
-        }
-
-        $this->setState('list.direction', $listOrder);
-
-        $user = $this->getCurrentUser();
-
-        if ((!$user->authorise('core.edit.state', 'com_boilerplate')) && (!$user->authorise('core.edit', 'com_boilerplate'))) {
-            // Filter on published for those who do not have edit or edit.state rights.
-            $this->setState('filter.published', ContentComponent::CONDITION_PUBLISHED);
-        }
-        $params = $app->getParams();
-        $this->setState('params', $params);
-        $user = $this->getCurrentUser();
-
-        if ((!$user->authorise('core.edit.state', 'com_boilerplate')) && (!$user->authorise('core.edit', 'com_boilerplate'))) {
-            // Filter on published for those who do not have edit or edit.state rights.
-            $this->setState('filter.published', ContentComponent::CONDITION_PUBLISHED);
-        }
-
-        $this->setState('filter.language', Multilanguage::isEnabled());
-
-        // Process show_noauth parameter
-        if ((!$params->get('show_noauth')) || (!ComponentHelper::getParams('com_boilerplate')->get('show_noauth'))) {
-            $this->setState('filter.access', true);
+        if ($active) {
+            $params = $active->getParams();
         } else {
-            $this->setState('filter.access', false);
+            $params = new Registry();
         }
 
-        $this->setState('layout', $input->getString('layout'));
-        $this->setState('filter.language', Multilanguage::isEnabled());
+        $options = [];
+        $categories = Categories::getInstance('Boilerplate', $options);
+        $this->_parent = $categories->get($this->getState('filter.parentId', 'root'));
 
-        // Process show_noauth parameter
-        if ((!$params->get('show_noauth')) || (!ComponentHelper::getParams('com_boilerplate')->get('show_noauth'))) {
-            $this->setState('filter.access', true);
-        } else {
-            $this->setState('filter.access', false);
+        if (\is_object($this->_parent)) {
+            return $this->_parent->getChildren($recursive);
         }
 
-        $this->setState('layout', $input->getString('layout'));
+        return false;
     }
 
     /**
@@ -299,5 +146,21 @@ class CategoriesModel extends ListModel
     public function getFormFactory(): FormFactoryInterface
     {
         return parent::getFormFactory();
+    }
+
+    /**
+     * Get the parent.
+     *
+     * @return  object|false  An array of data items on success, false on failure.
+     *
+     * @since   1.6
+     */
+    public function getParent(): object|bool
+    {
+        if (!\is_object($this->_parent)) {
+            $this->getItems();
+        }
+
+        return $this->_parent;
     }
 }

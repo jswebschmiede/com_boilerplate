@@ -97,6 +97,10 @@ class Router extends RouterView
         $boilerplate->setKey('id')->setParent($category, 'catid');
         $this->registerView($boilerplate);
 
+        $boilerplates = new RouterViewConfiguration('boilerplates');
+        $boilerplates->setKey('id')->setParent($categories, 'catid');
+        $this->registerView($boilerplates);
+
         parent::__construct($app, $menu);
 
         $this->attachRule(new MenuRules($this));

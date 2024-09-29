@@ -8,18 +8,15 @@
 	</layout>
 
 	<!-- Add fields to the request variables for the layout. -->
+	<!-- Add fields to the request variables for the layout. -->
 	<fields name="request">
 		<fieldset name="request">
 			<field name="id"
-				   type="sql"
-				   label="COM_BOILERPLATE_CATEGORY_FIELD_LABEL"
-				   description="COM_BOILERPLATE_CATEGORY_FIELD_DESC"
-				   query="SELECT id, title FROM #__categories WHERE extension = 'com_boilerplate' ORDER BY id ASC"
-				   key_field="id"
-				   value_field="title"
-				   required="true">
-				<option value="">COM_BOILERPLATE_SELECT_CATEGORY</option>
-			</field>
+				   type="category"
+				   label="JGLOBAL_FIELD_CATEGORIES_CHOOSE_CATEGORY_LABEL"
+				   extension="com_boilerplate"
+				   show_root="true"
+				   required="true" />
 		</fieldset>
 	</fields>
 

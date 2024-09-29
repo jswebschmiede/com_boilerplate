@@ -10,85 +10,30 @@
 
 namespace Joomla\Component\Boilerplate\Site\View\Categories;
 
-use Joomla\CMS\Factory;
-use Joomla\CMS\Router\Route;
-use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
-use Joomla\Component\Boilerplate\Site\Helper\RouteHelper;
+use Joomla\CMS\MVC\View\CategoriesView;
 
-defined('_JEXEC') or die;
+// phpcs:disable PSR1.Files.SideEffects
+\defined('_JEXEC') or die;
+// phpcs:enable PSR1.Files.SideEffects
 
 /**
- * Boilerplates list view
+ * Content categories view.
+ *
+ * @since  1.5
  */
-class HtmlView extends BaseHtmlView
+class HtmlView extends CategoriesView
 {
+	/**
+	 * Language key for default page heading
+	 *
+	 * @var    string
+	 * @since  3.2
+	 */
+	protected $pageHeading = 'JGLOBAL_ARTICLES';
+
 	/**
 	 * @var    string  The name of the extension for the category
 	 * @since  3.2
 	 */
 	protected $extension = 'com_boilerplate';
-
-	/**
-	 * An array of items
-	 *
-	 * @var    array
-	 * @since  1.6
-	 */
-	protected $items = [];
-
-	/**
-	 * The component params
-	 *
-	 * @var    \Joomla\Registry\Registry
-	 * @since  1.6
-	 */
-	protected $params;
-
-	/**
-	 * The ID of the item
-	 *
-	 * @var    int
-	 * @since  1.6
-	 */
-	protected $item_id;
-
-	/**
-	 * The pagination object
-	 *
-	 * @var    \Joomla\CMS\Pagination\Pagination
-	 * @since  1.6
-	 */
-	protected $pagination;
-
-	/**
-	 * The state object
-	 *
-	 * @var    \Joomla\CMS\Object\CMSObject
-	 * @since  1.6
-	 */
-	protected $state;
-
-
-	public function display($tpl = null): void
-	{
-		$model = $this->getModel();
-		$this->items = $model->getItems();
-		$this->state = $model->getState();
-		$this->params = $this->state->get('params');
-
-
-		foreach ($this->items as &$item) {
-			$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
-
-			// No link for ROOT category
-			if ($item->parent_alias === 'root') {
-				$item->parent_id = null;
-			}
-
-			$item->link = Route::_(RouteHelper::getBoilerplateRoute($item->id, $item->catid, $item->language));
-			$item->category_link = Route::_(RouteHelper::getCategoryRoute($item->catid, $item->language));
-		}
-
-		parent::display($tpl);
-	}
 }

@@ -12,9 +12,8 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Layout\LayoutHelper;
 
-/** @var \Joomla\Component\Boilerplate\Site\View\Categories\HtmlView $this */
+/** @var \Joomla\Component\Boilerplate\Site\View\Boilerplates\HtmlView $this */
 
 /** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
@@ -22,7 +21,7 @@ $wa->useScript('com_boilerplate.main');
 $wa->useStyle('com_boilerplate.style');
 ?>
 
-<div class="com_boilerplate categories-list">
+<div class="com_boilerplate boilerplates">
 	<?php if ($this->params->get('show_page_heading')): ?>
 		<div class="row">
 			<div class="page-header mb-4">
@@ -37,26 +36,27 @@ $wa->useStyle('com_boilerplate.style');
 		</div>
 	<?php endif; ?>
 
-	<ul>
-		<?php foreach ($this->items[$this->parent->id] as $id => $item): ?>
-			<li><?php echo $item->title; ?></li>
+	<?php foreach ($this->items as $item): ?>
+		<div class="row">
+			<div class="col-12 mb-4">
+				<h2><?php echo $item->name; ?></h2>
+				<div class="details small mb-3">
+					<time datetime="<?php echo $item->created; ?>">
+						<?php echo Text::_('JDATE'); ?>:
+						<?php echo JDate::getInstance($item->created)->format('d.m.Y'); ?>
+					</time>
+					<div><?php echo Text::_('JAUTHOR'); ?>: <?php echo $item->author; ?></div>
+					<div>
+						<?php echo Text::_('JCATEGORY'); ?>:
+						<a href="<?php echo $item->category_link; ?>"><?php echo $item->category_title; ?></a>
+					</div>
+				</div>
+				<?php echo $item->description; ?>
 
-			<?php if (count($item->getChildren()) > 0 && $this->maxLevelcat > 1): ?>
-				<ul class="com-content-categories__children" id="category-<?php echo $item->id; ?>">
-					<?php
-					$this->items[$item->id] = $item->getChildren();
-					$this->parent = $item;
-					$this->maxLevelcat--;
-					?>
-
-					<?php foreach ($this->items[$this->parent->id] as $id => $item): ?>
-						<li><?php echo $item->title; ?></li>
-					<?php endforeach; ?>
-
-					<?php $this->parent = $item->getParent(); ?>
-					<?php $this->maxLevelcat++; ?>
-				</ul>
-			<?php endif; ?>
-		<?php endforeach; ?>
-	</ul>
+				<a href="<?php echo $item->link; ?>" class="btn btn-primary">
+					More
+				</a>
+			</div>
+		</div>
+	<?php endforeach; ?>
 </div>

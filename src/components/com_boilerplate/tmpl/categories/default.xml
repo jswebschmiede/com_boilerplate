@@ -7,6 +7,18 @@
 		</message>
 	</layout>
 
+	<!-- Add fields to the request variables for the layout. -->
+	<fields name="request">
+		<fieldset name="request">
+			<field name="id"
+				   type="category"
+				   label="JGLOBAL_FIELD_CATEGORIES_CHOOSE_CATEGORY_LABEL"
+				   extension="com_boilerplate"
+				   show_root="true"
+				   required="true" />
+		</fieldset>
+	</fields>
+
 	<fields name="params">
 		<fieldset name="basic">
 			<!-- Define your basic params for the view here -->
