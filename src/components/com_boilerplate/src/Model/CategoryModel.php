@@ -175,13 +175,12 @@ class CategoryModel extends ListModel
 	/**
 	 * Retrieves the items of the category.
 	 *
-	 * @param   int  $pk  The ID of the category.
 	 * @return  array  The items of the category.
 	 * @since   1.6
 	 */
-	public function getItem($pk = null): array
+	public function getItems(): array
 	{
-		$pk = (int) ($pk ?: $this->getState('category.id'));
+		$pk = (int) $this->getState('category.id');
 
 		if ($this->_items === null) {
 			$this->_items = [];
@@ -257,8 +256,6 @@ class CategoryModel extends ListModel
 
 		return $this->_items[$pk];
 	}
-
-
 
 	/**
 	 * Summary of getFormFactory

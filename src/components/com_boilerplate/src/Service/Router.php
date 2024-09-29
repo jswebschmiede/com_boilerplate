@@ -98,7 +98,7 @@ class Router extends RouterView
         $this->registerView($boilerplate);
 
         $boilerplates = new RouterViewConfiguration('boilerplates');
-        $boilerplates->setKey('id')->setParent($categories, 'catid');
+        $boilerplates->setKey('id');
         $this->registerView($boilerplates);
 
         parent::__construct($app, $menu);
@@ -129,7 +129,6 @@ class Router extends RouterView
                     list($id, $segment) = explode(':', $segment, 2);
                 }
             }
-
             return $path;
         }
 
