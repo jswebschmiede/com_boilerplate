@@ -42,10 +42,8 @@ class BoilerplateModel extends ItemModel
 	 */
 	protected function populateState(): void
 	{
-		$app = Factory::getApplication();
-
 		// Load state from the request.
-		$pk = $app->input->getInt('id') ?? $this->getId();
+		$pk = $this->getId();
 		$this->setState('boilerplate.id', $pk);
 	}
 
