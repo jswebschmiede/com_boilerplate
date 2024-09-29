@@ -79,16 +79,49 @@ module.exports = (env, argv) => {
                 from: 'dist/administrator/components/com_boilerplate',
                 to: path.join(joomlaPath, 'administrator/components/com_boilerplate'),
                 noErrorOnMissing: true,
+                globOptions: {
+                    ignore: ['**/language/**'],
+                },
             },
             {
                 from: 'dist/components/com_boilerplate',
                 to: path.join(joomlaPath, 'components/com_boilerplate'),
                 noErrorOnMissing: true,
+                globOptions: {
+                    ignore: ['**/language/**'],
+                },
             },
             {
                 from: 'dist/media/com_boilerplate',
                 to: path.join(joomlaPath, 'media/com_boilerplate'),
                 noErrorOnMissing: true,
+            },
+            {
+                from: 'dist/administrator/components/com_boilerplate/language/**/*.ini',
+                to: ({ context, absoluteFilename }) => {
+                    const relativePath = path.relative(context, absoluteFilename);
+                    const parts = relativePath.split(path.sep);
+                    const lang = parts[parts.length - 2]; // take the second last part of the path as language code
+                    return path.join(
+                        joomlaPath,
+                        'administrator/language',
+                        lang,
+                        path.basename(absoluteFilename),
+                    );
+                },
+                noErrorOnMissing: true,
+                force: true,
+            },
+            {
+                from: 'dist/components/com_boilerplate/language/**/*.ini',
+                to: ({ context, absoluteFilename }) => {
+                    const relativePath = path.relative(context, absoluteFilename);
+                    const parts = relativePath.split(path.sep);
+                    const lang = parts[parts.length - 2]; // take the second last part of the path as language code
+                    return path.join(joomlaPath, 'language', lang, path.basename(absoluteFilename));
+                },
+                noErrorOnMissing: true,
+                force: true,
             },
         );
     }
