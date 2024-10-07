@@ -52,7 +52,7 @@ To work in development mode and benefit from automatic reloading and copying the
 ```
 joomla_dev/
     - joomla/
-    - joomla_compoents/
+    - joomla_components/
         - com_boilerplate/
 ```
 
