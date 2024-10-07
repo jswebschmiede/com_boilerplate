@@ -11,8 +11,8 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Language\Text;
-use Joomla\CMS\Layout\LayoutHelper;
+use Joomla\CMS\Router\Route;
+use Joomla\Component\Boilerplate\Site\Helper\RouteHelper;
 
 /** @var \Joomla\Component\Boilerplate\Site\View\Categories\HtmlView $this */
 
@@ -20,6 +20,8 @@ use Joomla\CMS\Layout\LayoutHelper;
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
 $wa->useScript('com_boilerplate.main');
 $wa->useStyle('com_boilerplate.style');
+
+$items = $this->getItems();
 ?>
 
 <div class="com_boilerplate categories-list">
@@ -38,19 +40,27 @@ $wa->useStyle('com_boilerplate.style');
 	<?php endif; ?>
 
 	<ul>
-		<?php foreach ($this->items[$this->parent->id] as $id => $item): ?>
-			<li><?php echo $item->title; ?></li>
+		<?php foreach ($items[$this->parent->id] as $id => $item): ?>
+			<li>
+				<a href="<?php echo Route::_(RouteHelper::getCategoryRoute($item->id, $item->language)); ?>">
+					<?php echo $item->title; ?>
+				</a>
+			</li>
 
 			<?php if (count($item->getChildren()) > 0 && $this->maxLevelcat > 1): ?>
 				<ul class="com-content-categories__children" id="category-<?php echo $item->id; ?>">
 					<?php
-					$this->items[$item->id] = $item->getChildren();
+					$items[$item->id] = $item->getChildren();
 					$this->parent = $item;
 					$this->maxLevelcat--;
 					?>
 
-					<?php foreach ($this->items[$this->parent->id] as $id => $item): ?>
-						<li><?php echo $item->title; ?></li>
+					<?php foreach ($items[$this->parent->id] as $id => $item): ?>
+						<li>
+							<a href="<?php echo Route::_(RouteHelper::getCategoryRoute($item->id, $item->language)); ?>">
+								<?php echo $item->title; ?>
+							</a>
+						</li>
 					<?php endforeach; ?>
 
 					<?php $this->parent = $item->getParent(); ?>
