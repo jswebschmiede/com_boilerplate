@@ -11,13 +11,11 @@
 namespace Joomla\Component\Boilerplate\Site\Model;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Router\Route;
-use Joomla\Registry\Registry;
+use Joomla\Database\DatabaseQuery;
 use Joomla\Database\ParameterType;
 use Joomla\CMS\MVC\Model\ListModel;
 use Joomla\CMS\Categories\Categories;
 use Joomla\CMS\Language\Multilanguage;
-use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Categories\CategoryNode;
 use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Form\FormFactoryInterface;
@@ -55,8 +53,6 @@ class BoilerplatesModel extends ListModel
      */
     private $_parent = null;
 
-    protected $_items = [];
-
     /**
      * Constructor.
      *
@@ -91,6 +87,8 @@ class BoilerplatesModel extends ListModel
                 'c.level',
             ];
         }
+
+        parent::__construct($config);
     }
 
     /**
@@ -110,106 +108,11 @@ class BoilerplatesModel extends ListModel
         $id .= ':' . $this->getState('filter.extension');
         $id .= ':' . $this->getState('filter.published');
         $id .= ':' . $this->getState('filter.parentId');
+        $id .= ':' . $this->getState('list.limit');
+        $id .= ':' . $this->getState('list.start');
+        $id .= ':' . $this->getState('list.ordering');
 
         return parent::getStoreId($id);
-    }
-
-    /**
-     * Redefine the function and add some properties to make the styling easier
-     *
-     * @param   bool  $recursive  True if you want to return children recursively.
-     *
-     * @return  mixed  An array of data items on success, false on failure.
-     *
-     * @since   1.6
-     */
-    public function getItems($recursive = true): array
-    {
-        $db = Factory::getContainer()->get(DatabaseInterface::class);
-        $categories = Categories::getInstance('Boilerplate');
-        $this->_parent = $categories->get($this->getState('filter.parentId', 'root'));
-        $children = $this->_parent->getChildren($recursive);
-
-        // Extract category IDs
-        $categoryIds = array_map(function ($child) {
-            return $child->id;
-        }, $children);
-
-        if (empty($categoryIds)) {
-            return [];
-        }
-
-        // Fetch all boilerplates for the extracted category IDs
-        $query = $db->getQuery(true);
-        $query->select($this->getState('item.select', [
-            $db->quoteName('a.id'),
-            $db->quoteName('a.name'),
-            $db->quoteName('a.alias'),
-            $db->quoteName('a.catid'),
-            $db->quoteName('a.state'),
-            $db->quoteName('a.ordering'),
-            $db->quoteName('a.language'),
-            $db->quoteName('a.metakey'),
-            $db->quoteName('a.created_by'),
-            $db->quoteName('a.created'),
-            $db->quoteName('a.modified'),
-            $db->quoteName('a.modified_by'),
-            $db->quoteName('a.description'),
-            $db->quoteName('l.title', 'language_title'),
-            $db->quoteName('l.image', 'language_image'),
-            $db->quoteName('c.title', 'category_title'),
-            $db->quoteName('c.path', 'category_route'),
-            $db->quoteName('c.alias', 'category_alias'),
-            $db->quoteName('c.language', 'category_language'),
-            $db->quoteName('u.name', 'author'),
-            $db->quoteName('parent.title', 'parent_title'),
-            $db->quoteName('parent.id', 'parent_id'),
-            $db->quoteName('parent.path', 'parent_route'),
-            $db->quoteName('parent.alias', 'parent_alias'),
-            $db->quoteName('parent.language', 'parent_language')
-        ]));
-        $query->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
-            ->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
-            ->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
-            ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
-            ->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
-            ->where($db->quoteName('a.catid') . ' IN (' . implode(',', $categoryIds) . ')');
-
-        // Filter by published state
-        $condition = (int) $this->getState('filter.published');
-
-        // Category has to be published and article has to be published.
-        $query->where($db->quoteName('a.state') . ' = :condition')
-            ->bind(':condition', $condition, ParameterType::INTEGER);
-
-        // Add the list ordering clause.
-        $orderCol = $this->getState('list.ordering', 'a.name');
-        $orderDirn = $this->getState('list.direction', 'ASC');
-
-        if ($orderCol === 'a.ordering' || $orderCol === 'category_title') {
-            $ordering = [
-                $db->quoteName('c.title') . ' ' . $db->escape($orderDirn),
-                $db->quoteName('a.ordering') . ' ' . $db->escape($orderDirn),
-            ];
-        } else {
-            $ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);
-        }
-
-        $query->order($ordering);
-
-        $db->setQuery($query);
-        $this->_items = $db->loadObjectList();
-
-        // Merge category slug into each item
-        foreach ($this->_items as &$item) {
-            $categoryNode = $categories->get($item->catid);
-            if ($categoryNode) {
-                $item->category_slug = $categoryNode->slug;
-
-            }
-        }
-
-        return $this->_items;
     }
 
     /**
@@ -299,5 +202,83 @@ class BoilerplatesModel extends ListModel
     public function getFormFactory(): FormFactoryInterface
     {
         return parent::getFormFactory();
+    }
+
+    protected function getListQuery(): DatabaseQuery|false
+    {
+        $db = $this->getDatabase();
+        $categories = Categories::getInstance('Boilerplate');
+        $this->_parent = $categories->get($this->getState('filter.parentId', 'root'));
+        $children = $this->_parent->getChildren(true);
+
+        // Extract category IDs
+        $categoryIds = array_map(function ($child) {
+            return $child->id;
+        }, $children);
+
+        if (empty($categoryIds)) {
+            return false;
+        }
+
+        /** @var \Joomla\Database\DatabaseQuery $query */
+        $query = $db->getQuery(true);
+
+        $query->select($this->getState('list.select', [
+            $db->quoteName('a.id'),
+            $db->quoteName('a.name'),
+            $db->quoteName('a.alias'),
+            $db->quoteName('a.catid'),
+            $db->quoteName('a.state'),
+            $db->quoteName('a.ordering'),
+            $db->quoteName('a.language'),
+            $db->quoteName('a.metakey'),
+            $db->quoteName('a.created_by'),
+            $db->quoteName('a.created'),
+            $db->quoteName('a.modified'),
+            $db->quoteName('a.modified_by'),
+            $db->quoteName('a.description'),
+            $db->quoteName('l.title', 'language_title'),
+            $db->quoteName('l.image', 'language_image'),
+            $db->quoteName('c.title', 'category_title'),
+            $db->quoteName('c.path', 'category_route'),
+            $db->quoteName('c.alias', 'category_alias'),
+            $db->quoteName('c.language', 'category_language'),
+            $db->quoteName('u.name', 'author'),
+            $db->quoteName('parent.title', 'parent_title'),
+            $db->quoteName('parent.id', 'parent_id'),
+            $db->quoteName('parent.path', 'parent_route'),
+            $db->quoteName('parent.alias', 'parent_alias'),
+            $db->quoteName('parent.language', 'parent_language')
+        ]));
+        $query->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
+            ->join('LEFT', $db->quoteName('#__languages', 'l'), $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'))
+            ->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
+            ->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
+            ->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
+            ->where($db->quoteName('a.catid') . ' IN (' . implode(',', $categoryIds) . ')');
+
+        // Filter by published state
+        $condition = (int) $this->getState('filter.published');
+
+        // Category has to be published and article has to be published.
+        $query->where($db->quoteName('a.state') . ' = :condition')
+            ->bind(':condition', $condition, ParameterType::INTEGER);
+
+        // Add the list ordering clause.
+        $orderCol = $this->getState('list.ordering', 'a.name');
+        $orderDirn = $this->getState('list.direction', 'ASC');
+
+        if ($orderCol === 'a.ordering' || $orderCol === 'category_title') {
+            $ordering = [
+                $db->quoteName('c.title') . ' ' . $db->escape($orderDirn),
+                $db->quoteName('a.ordering') . ' ' . $db->escape($orderDirn),
+            ];
+        } else {
+            $ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);
+        }
+
+        $query->order($ordering);
+
+        return $query;
     }
 }

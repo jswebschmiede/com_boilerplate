@@ -10,7 +10,6 @@
 
 namespace Joomla\Component\Boilerplate\Site\View\Boilerplates;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\Router\Route;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
 use Joomla\Component\Boilerplate\Site\Helper\RouteHelper;
@@ -71,11 +70,10 @@ class HtmlView extends BaseHtmlView
 
 	public function display($tpl = null): void
 	{
-		$model = $this->getModel();
-		$this->items = $model->getItems();
-		$this->state = $model->getState();
+		$this->items = $this->get('Items');
+		$this->state = $this->get('State');
 		$this->params = $this->state->get('params');
-
+		$this->pagination = $this->get('Pagination');
 
 		foreach ($this->items as &$item) {
 			$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;

@@ -59,4 +59,10 @@ $wa->useStyle('com_boilerplate.style');
 			</div>
 		</div>
 	<?php endforeach; ?>
+
+	<?php if ($this->pagination->pagesTotal > 1): ?>
+		<div class="com-boilerplate-boilerplates__pagination">
+			<?php echo $this->pagination->getPagesLinks(); ?>
+		</div>
+	<?php endif; ?>
 </div>
