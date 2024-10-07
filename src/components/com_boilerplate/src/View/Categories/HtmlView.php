@@ -23,6 +23,9 @@ use Joomla\CMS\MVC\View\CategoriesView;
  */
 class HtmlView extends CategoriesView
 {
+
+	public $maxLevelcat = 0;
+
 	/**
 	 * Language key for default page heading
 	 *
@@ -36,4 +39,17 @@ class HtmlView extends CategoriesView
 	 * @since  3.2
 	 */
 	protected $extension = 'com_boilerplate';
+
+	/**
+	 * Get the items for the categories view.
+	 * @return mixed
+	 */
+	public function getItems(): mixed
+	{
+		$items = [
+			$this->parent->id => $this->get('Items')
+		];
+
+		return $items;
+	}
 }
