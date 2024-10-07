@@ -12,10 +12,9 @@
 namespace Joomla\Component\Boilerplate\Site\Model;
 
 use Joomla\CMS\Factory;
+use Joomla\Database\DatabaseQuery;
 use Joomla\Database\ParameterType;
-use Joomla\CMS\MVC\Model\ItemModel;
 use Joomla\CMS\MVC\Model\ListModel;
-use Joomla\Database\DatabaseInterface;
 use Joomla\CMS\Form\FormFactoryInterface;
 use Joomla\Component\Content\Administrator\Extension\ContentComponent;
 
@@ -36,12 +35,6 @@ class CategoryModel extends ListModel
 	 * @var     string
 	 */
 	protected $_extension = 'com_boilerplate';
-
-	/**	
-	 * @var array The items for the model.
-	 * @since 1.6
-	 */
-	protected $_items = [];
 
 	/**
 	 * Constructor.
@@ -77,6 +70,8 @@ class CategoryModel extends ListModel
 				'c.level',
 			];
 		}
+
+		parent::__construct($config);
 	}
 
 	/**
@@ -173,88 +168,77 @@ class CategoryModel extends ListModel
 	}
 
 	/**
-	 * Retrieves the items of the category.
-	 *
-	 * @return  array  The items of the category.
-	 * @since   1.6
+	 * Summary of getListQuery
+	 * @return \Joomla\Database\DatabaseQuery|false
 	 */
-	public function getItems(): array
+	protected function getListQuery(): DatabaseQuery|false
 	{
 		$pk = (int) $this->getState('category.id');
 
-		if ($this->_items === null) {
-			$this->_items = [];
+		// Load the item
+		$db = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$query->select($this->getState('list.select', [
+			$db->quoteName('a.id'),
+			$db->quoteName('a.name'),
+			$db->quoteName('a.alias'),
+			$db->quoteName('a.catid'),
+			$db->quoteName('a.state'),
+			$db->quoteName('a.ordering'),
+			$db->quoteName('a.language'),
+			$db->quoteName('a.metakey'),
+			$db->quoteName('a.created_by'),
+			$db->quoteName('a.created'),
+			$db->quoteName('a.modified'),
+			$db->quoteName('a.modified_by'),
+			$db->quoteName('a.description'),
+			$db->quoteName('l.title', 'language_title'),
+			$db->quoteName('l.image', 'language_image'),
+			$db->quoteName('c.title', 'category_title'),
+			$db->quoteName('c.path', 'category_route'),
+			$db->quoteName('c.alias', 'category_alias'),
+			$db->quoteName('c.language', 'category_language'),
+			$db->quoteName('u.name', 'author'),
+			$db->quoteName('parent.title', 'parent_title'),
+			$db->quoteName('parent.id', 'parent_id'),
+			$db->quoteName('parent.path', 'parent_route'),
+			$db->quoteName('parent.alias', 'parent_alias'),
+			$db->quoteName('parent.language', 'parent_language')
+		]));
+
+		$query->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
+			->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
+			->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
+			->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
+			->join('LEFT', $db->quoteName('#__languages', 'l') . ' ON ' . $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'));
+
+		$query->where($db->quoteName('a.catid') . ' = :catid')
+			->bind(':catid', $pk, ParameterType::INTEGER);
+
+		// Filter by published state
+		$condition = (int) $this->getState('filter.published');
+
+		// Category has to be published and article has to be published.
+		$query->where($db->quoteName('a.state') . ' = :condition')
+			->bind(':condition', $condition, ParameterType::INTEGER);
+
+		// Add the list ordering clause.
+		$orderCol = $this->getState('list.ordering', 'a.name');
+		$orderDirn = $this->getState('list.direction', 'ASC');
+
+		if ($orderCol === 'a.ordering' || $orderCol === 'category_title') {
+			$ordering = [
+				$db->quoteName('c.title') . ' ' . $db->escape($orderDirn),
+				$db->quoteName('a.ordering') . ' ' . $db->escape($orderDirn),
+			];
+		} else {
+			$ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);
 		}
 
-		if (!isset($this->_items[$pk])) {
-			// Load the item
-			$db = Factory::getContainer()->get(DatabaseInterface::class);
-			$query = $db->getQuery(true);
+		$query->order($ordering);
 
-			$query->select($this->getState('item.select', [
-				$db->quoteName('a.id'),
-				$db->quoteName('a.name'),
-				$db->quoteName('a.alias'),
-				$db->quoteName('a.catid'),
-				$db->quoteName('a.state'),
-				$db->quoteName('a.ordering'),
-				$db->quoteName('a.language'),
-				$db->quoteName('a.metakey'),
-				$db->quoteName('a.created_by'),
-				$db->quoteName('a.created'),
-				$db->quoteName('a.modified'),
-				$db->quoteName('a.modified_by'),
-				$db->quoteName('a.description'),
-				$db->quoteName('l.title', 'language_title'),
-				$db->quoteName('l.image', 'language_image'),
-				$db->quoteName('c.title', 'category_title'),
-				$db->quoteName('c.path', 'category_route'),
-				$db->quoteName('c.alias', 'category_alias'),
-				$db->quoteName('c.language', 'category_language'),
-				$db->quoteName('u.name', 'author'),
-				$db->quoteName('parent.title', 'parent_title'),
-				$db->quoteName('parent.id', 'parent_id'),
-				$db->quoteName('parent.path', 'parent_route'),
-				$db->quoteName('parent.alias', 'parent_alias'),
-				$db->quoteName('parent.language', 'parent_language')
-			]));
-
-			$query->from($db->quoteName('#__boilerplate_boilerplate', 'a'))
-				->join('INNER', $db->quoteName('#__categories', 'c'), $db->quoteName('c.id') . ' = ' . $db->quoteName('a.catid'))
-				->join('LEFT', $db->quoteName('#__users', 'u'), $db->quoteName('u.id') . ' = ' . $db->quoteName('a.created_by'))
-				->join('LEFT', $db->quoteName('#__categories', 'parent'), $db->quoteName('parent.id') . ' = ' . $db->quoteName('c.parent_id'))
-				->join('LEFT', $db->quoteName('#__languages', 'l') . ' ON ' . $db->quoteName('l.lang_code') . ' = ' . $db->quoteName('a.language'));
-
-			$query->where($db->quoteName('a.catid') . ' = :catid')
-				->bind(':catid', $pk, ParameterType::INTEGER);
-
-			// Filter by published state
-			$condition = (int) $this->getState('filter.published');
-
-			// Category has to be published and article has to be published.
-			$query->where($db->quoteName('a.state') . ' = :condition')
-				->bind(':condition', $condition, ParameterType::INTEGER);
-
-			// Add the list ordering clause.
-			$orderCol = $this->getState('list.ordering', 'a.name');
-			$orderDirn = $this->getState('list.direction', 'ASC');
-
-			if ($orderCol === 'a.ordering' || $orderCol === 'category_title') {
-				$ordering = [
-					$db->quoteName('c.title') . ' ' . $db->escape($orderDirn),
-					$db->quoteName('a.ordering') . ' ' . $db->escape($orderDirn),
-				];
-			} else {
-				$ordering = $db->escape($orderCol) . ' ' . $db->escape($orderDirn);
-			}
-
-			$query->order($ordering);
-
-			$db->setQuery($query);
-			$this->_items[$pk] = $db->loadObjectList();
-		}
-
-		return $this->_items[$pk];
+		return $query;
 	}
 
 	/**

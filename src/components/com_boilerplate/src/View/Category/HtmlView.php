@@ -93,6 +93,7 @@ class HtmlView extends BaseHtmlView
 		$this->items = $this->get('Items');
 		$this->state = $this->get('State');
 		$this->params = $this->state->get('params');
+		$this->pagination = $this->get('Pagination');
 
 		// Get the category
 		$this->category = Categories::getInstance('Boilerplate')->get($this->state->get('category.id'));
