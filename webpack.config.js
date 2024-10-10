@@ -203,8 +203,18 @@ module.exports = (env, argv) => {
             minimizer: [
                 // For webpack@5 you can use the `...` syntax to extend existing minimizers (i.e. `terser-webpack-plugin`)
                 `...`,
-                new CssMinimizerPlugin(),
+                new CssMinimizerPlugin({
+                    minimizerOptions: {
+                        preset: [
+                            'default',
+                            {
+                                discardComments: { removeAll: true },
+                            },
+                        ],
+                    },
+                }),
             ],
+            minimize: true,
         },
         stats: 'errors-only', // Shows only errors in the console output
     };
