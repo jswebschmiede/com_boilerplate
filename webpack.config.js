@@ -7,6 +7,8 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const webpack = require('webpack');
 const chalk = require('chalk');
 const logSymbols = require('log-symbols');
+const fs = require('fs');
+const rimraf = require('rimraf');
 
 let lastPercentage = 0;
 
@@ -49,6 +51,14 @@ const createProgressBar = (percentage) => {
     return chalk.green('█'.repeat(filledWidth)) + chalk.gray('█'.repeat(emptyWidth));
 };
 
+const cleanDirectories = (directories) => {
+    directories.forEach((dir) => {
+        if (fs.existsSync(dir)) {
+            rimraf.sync(`${dir}/*`);
+        }
+    });
+};
+
 module.exports = (env, argv) => {
     const isProduction = argv.mode === 'production';
     const joomlaPath = path.resolve(__dirname, '../../joomla');
@@ -72,6 +82,15 @@ module.exports = (env, argv) => {
         { from: 'src/api', to: 'api', noErrorOnMissing: true },
         { from: 'src/boilerplate.xml', to: 'boilerplate.xml' },
     ];
+
+    const directoriesToClean = [
+        path.join(joomlaPath, 'administrator/components/com_roombooking'),
+        path.join(joomlaPath, 'components/com_roombooking'),
+        path.join(joomlaPath, 'media/com_roombooking'),
+    ];
+
+    // Clean directories before build
+    cleanDirectories(directoriesToClean);
 
     if (!isProduction) {
         copyPatterns.push(
@@ -160,18 +179,6 @@ module.exports = (env, argv) => {
             }),
             new MiniCssExtractPlugin({
                 filename: 'media/com_boilerplate/css/styles.min.css',
-            }),
-            new CleanWebpackPlugin({
-                cleanOnceBeforeBuildPatterns: [
-                    path.join(joomlaPath, 'administrator/components/com_boilerplate/**/*'),
-                    path.join(joomlaPath, 'components/com_boilerplate/**/*'),
-                    path.join(joomlaPath, 'media/com_boilerplate/**/*'),
-                    `!${path.join(joomlaPath, 'administrator/components/com_boilerplate')}`,
-                    `!${path.join(joomlaPath, 'components/com_boilerplate')}`,
-                    `!${path.join(joomlaPath, 'media/com_boilerplate')}`,
-                ],
-                cleanAfterEveryBuildPatterns: [],
-                dangerouslyAllowCleanPatternsOutsideProject: true,
             }),
             new CopyPlugin({
                 patterns: copyPatterns,
