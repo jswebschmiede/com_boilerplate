@@ -89,11 +89,17 @@ module.exports = (env, argv) => {
         path.join(joomlaPath, 'media/com_roombooking'),
     ];
 
-    // Clean directories before build
-    cleanDirectories(directoriesToClean);
-
     if (!isProduction) {
+        console.log(chalk.red(`${logSymbols.error} Cleaning directories...`));
+
+        // Clean directories before build
+        cleanDirectories(directoriesToClean);
+
         copyPatterns.push(
+            {
+                from: 'dist/roombooking.xml',
+                to: path.join(joomlaPath, 'administrator/components/com_boilerplate'),
+            },
             {
                 from: 'dist/administrator/components/com_boilerplate',
                 to: path.join(joomlaPath, 'administrator/components/com_boilerplate'),
