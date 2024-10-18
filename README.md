@@ -17,7 +17,7 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 
 ## Prerequisites
 
--   Node.js (version 14 or higher)
+-   Node.js (version 21.5.0 or higher)
 -   pnpm (can be installed globally with `npm install -g pnpm`)
 -   Joomla 5.x or higher (tested with Joomla 5.0)
 -   PHP 8.3 or higher (tested with PHP 8.3)
