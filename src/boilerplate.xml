@@ -60,10 +60,10 @@
         <folder>src</folder>
         <folder>tmpl</folder>
     </files>
-    <!-- 
+
     <languages folder="language">
         <language tag="en-GB">en-GB/com_boilerplate.ini</language>
-    </languages> -->
+    </languages>
 
     <media destination="com_boilerplate"
            folder="media/com_boilerplate">
