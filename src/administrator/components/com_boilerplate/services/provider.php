@@ -23,8 +23,11 @@ use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;
 use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
 use Joomla\Component\Boilerplate\Administrator\Extension\BoilerplateComponent;
 
+// Load Composer autoloader
+// require_once JPATH_ADMINISTRATOR . '/components/com_boilerplate/vendor/autoload.php';
+
 /**
- * The mywalks service provider.
+ * The boilerplates service provider.
  *
  * @since  4.0.0
  */

@@ -12,6 +12,7 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 -   Progress display during the build process
 -   Automatic creation of ZIP archives for easy installation
 -   Automatic copying of files to your Joomla installation
+-   Composer support (if needed uncomment the autoload.php in the services/provider.php file)
 -   Category support (if not needed, look at https://github.com/jswebschmiede/com_simpleboilerplate)
 
 ## Prerequisites
@@ -19,6 +20,7 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 -   Node.js (version 14 or higher)
 -   pnpm (can be installed globally with `npm install -g pnpm`)
 -   Joomla 5.x or higher (tested with Joomla 5.0)
+-   PHP 8.3 or higher (tested with PHP 8.3)
 
 ## Installation
 
@@ -38,6 +40,12 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 
     ```
     pnpm install
+    ```
+
+4. Install Composer dependencies:
+
+    ```
+    composer install
     ```
 
 ## Usage
@@ -82,13 +90,14 @@ This creates an optimized version of the component and packages it into a ZIP fi
 -   `dist/`: Compiled and optimized files (after build)
 -   `webpack.config.js`: Webpack configuration
 -   `tailwind.config.js`: Tailwind CSS configuration
+-   `composer.json`: Composer configuration
 -   `package.json`: Project dependencies and scripts
 
 ## Customization
 
 You can customize the component by editing the files in the `src/` directory. The main customization points are:
 
--   replace all occurences of `com_boilerplate` with your component name, don't forget to change the name in the `package.json` file and the `webpack.config.js` file too
+-   replace all occurences of `com_boilerplate` with your component name, don't forget to change the name in the `package.json` file, the `webpack.config.js` file and the `composer.json` file too
 -   replace all occurences of `Boilerplate` and `boilerplate` with your component name
 
 ## Contributing
