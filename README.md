@@ -12,7 +12,7 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 -   Progress display during the build process
 -   Automatic creation of ZIP archives for easy installation
 -   Automatic copying of files to your Joomla installation
--   Composer support (if needed uncomment the autoload.php in the services/provider.php file)
+-   Composer support (if needed uncomment the autoload.php in the services/provider.php file and the vendor folder in boilerplate.xml)
 -   Category support (if not needed, look at https://github.com/jswebschmiede/com_simpleboilerplate)
 
 ## Prerequisites
