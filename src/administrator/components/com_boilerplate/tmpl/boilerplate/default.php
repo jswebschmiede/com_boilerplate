@@ -23,6 +23,8 @@ $wa->getRegistry()->addExtensionRegistryFile('com_contenthistory');
 $wa->useScript('keepalive')
 	->useScript('form.validate')
 	->useScript('com_contenthistory.admin-history-versions');
+$wa->useScript('component.boilerplate.admin');
+$wa->useStyle('component.boilerplate.admin');
 
 $state = $this->getState();
 $item = $this->getItem();

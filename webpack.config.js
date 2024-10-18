@@ -3,7 +3,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const ZipPlugin = require('zip-webpack-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const webpack = require('webpack');
 const chalk = require('chalk');
 const logSymbols = require('log-symbols');
@@ -21,8 +20,6 @@ const progressHandler = (percentage, message) => {
         // Clear console
         process.stdout.write('\x1Bc');
 
-        console.log(''); // Adds a blank line at the beginning
-
         if (percentage === 0) {
             console.log(chalk.blue(`${logSymbols.info} Build starting...`));
         } else if (percentage === 1) {
@@ -36,8 +33,6 @@ const progressHandler = (percentage, message) => {
             );
             console.log(chalk.cyan(`${logSymbols.info} Status: ${message}`));
         }
-
-        console.log(''); // Adds a blank line at the end
 
         lastPercentage = roundedPercentage;
     }
@@ -84,9 +79,9 @@ module.exports = (env, argv) => {
     ];
 
     const directoriesToClean = [
-        path.join(joomlaPath, 'administrator/components/com_roombooking'),
-        path.join(joomlaPath, 'components/com_roombooking'),
-        path.join(joomlaPath, 'media/com_roombooking'),
+        path.join(joomlaPath, 'administrator/components/com_boilerplate'),
+        path.join(joomlaPath, 'components/com_boilerplate'),
+        path.join(joomlaPath, 'media/com_boilerplate'),
     ];
 
     if (!isProduction) {
@@ -155,7 +150,8 @@ module.exports = (env, argv) => {
         mode: isProduction ? 'production' : 'development',
         devtool: isProduction ? 'source-map' : 'eval-source-map',
         entry: {
-            main: './src/media/com_boilerplate/js/main.js',
+            admin: './src/media/com_boilerplate/js/admin.js',
+            site: './src/media/com_boilerplate/js/site.js',
         },
         output: {
             filename: 'media/com_boilerplate/js/[name].bundle.js',
@@ -175,6 +171,10 @@ module.exports = (env, argv) => {
                     test: /\.css$/,
                     use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader'],
                 },
+                {
+                    test: /\.(woff|woff2|eot|ttf|otf)$/i,
+                    type: 'asset/inline',
+                },
             ],
         },
         plugins: [
@@ -184,7 +184,7 @@ module.exports = (env, argv) => {
                 profile: false, // Disables detailed profiling
             }),
             new MiniCssExtractPlugin({
-                filename: 'media/com_boilerplate/css/styles.min.css',
+                filename: 'media/com_boilerplate/css/[name].min.css',
             }),
             new CopyPlugin({
                 patterns: copyPatterns,

@@ -18,8 +18,8 @@ use Joomla\Component\Boilerplate\Site\Helper\RouteHelper;
 
 /** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
-$wa->useScript('com_boilerplate.main');
-$wa->useStyle('com_boilerplate.style');
+$wa->useScript('component.boilerplate.site');
+$wa->useStyle('component.boilerplate.site');
 
 $items = $this->getItems();
 ?>

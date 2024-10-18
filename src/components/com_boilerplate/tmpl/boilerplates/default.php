@@ -17,8 +17,8 @@ use Joomla\CMS\Language\Text;
 
 /** @var Joomla\CMS\WebAsset\WebAssetManager $wa */
 $wa = Factory::getApplication()->getDocument()->getWebAssetManager();
-$wa->useScript('com_boilerplate.main');
-$wa->useStyle('com_boilerplate.style');
+$wa->useScript('component.boilerplate.site');
+$wa->useStyle('component.boilerplate.site');
 ?>
 
 <div class="com_boilerplate boilerplates">

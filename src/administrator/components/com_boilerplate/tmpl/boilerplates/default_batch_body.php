@@ -2,10 +2,10 @@
 
 /**
  * @package     Joomla.Administrator
- * @subpackage  com_banners
+ * @subpackage  com_boilerplate
  *
- * @copyright   (C) 2015 Open Source Matters, Inc. <https://www.joomla.org>
- * @license     GNU General Public License version 2 or later; see LICENSE.txt
+ * @copyright   (C) 2024 Jörg Schöneburg
+ * @license     MIT License (MIT) see LICENSE.txt
  */
 
 defined('_JEXEC') or die;
