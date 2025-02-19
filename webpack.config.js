@@ -92,7 +92,7 @@ module.exports = (env, argv) => {
 
         copyPatterns.push(
             {
-                from: 'dist/roombooking.xml',
+                from: 'dist/boilerplate.xml',
                 to: path.join(joomlaPath, 'administrator/components/com_boilerplate'),
             },
             {
@@ -192,7 +192,7 @@ module.exports = (env, argv) => {
             ...(isProduction
                 ? [
                       new ZipPlugin({
-                          path: path.resolve(__dirname, 'dist'),
+                          path: path.resolve(__dirname, 'dist/zip'),
                           filename: 'com_boilerplate.zip',
                           extension: 'zip',
                           fileOptions: {
