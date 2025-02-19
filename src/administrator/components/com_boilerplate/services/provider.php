@@ -23,8 +23,8 @@ use Joomla\CMS\Dispatcher\ComponentDispatcherFactoryInterface;
 use Joomla\CMS\Extension\Service\Provider\ComponentDispatcherFactory;
 use Joomla\Component\Boilerplate\Administrator\Extension\BoilerplateComponent;
 
-// Load Composer autoloader
-// require_once JPATH_ADMINISTRATOR . '/components/com_boilerplate/vendor/autoload.php';
+// Load Composer autoloader (uncomment if you want to use dependencies)
+// require_once JPATH_ADMINISTRATOR . '/components/com_boilerplate/dependencies/vendor/autoload.php';
 
 /**
  * The boilerplates service provider.

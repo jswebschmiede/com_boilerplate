@@ -35,7 +35,7 @@
             <folder>services</folder>
             <folder>sql</folder>
             <folder>src</folder>
-            <!-- <folder>vendor</folder> -->
+            <!-- <folder>dependencies</folder> -->
         </files>
 
         <languages folder="administrator/components/com_boilerplate/language">
@@ -62,7 +62,7 @@
         <folder>tmpl</folder>
     </files>
 
-    <languages folder="language">
+    <languages folder="components/com_boilerplate/language">
         <language tag="en-GB">en-GB/com_boilerplate.ini</language>
     </languages>
 
