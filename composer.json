@@ -7,7 +7,5 @@
             "php": "8.3"
         }
     },
-    "require": {
-        "erusev/parsedown": "^1.7"
-    }
+    "require": {}
 }
