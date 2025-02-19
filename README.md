@@ -12,7 +12,8 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 -   Progress display during the build process
 -   Automatic creation of ZIP archives for easy installation
 -   Automatic copying of files to your Joomla installation
--   Composer support (if needed uncomment the autoload.php in the services/provider.php file and the vendor folder in boilerplate.xml)
+-   Composer support (if needed uncomment the autoload.php in the services/provider.php file and the dependencies folder in boilerplate.xml)
+-   Scoped dependencies
 -   Category support (if not needed, look at https://github.com/jswebschmiede/com_simpleboilerplate)
 
 ## Prerequisites
@@ -21,6 +22,7 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 -   pnpm (can be installed globally with `npm install -g pnpm`)
 -   Joomla 5.x or higher (tested with Joomla 5.0)
 -   PHP 8.3 or higher (tested with PHP 8.3)
+-   Make (optional, but recommended). If not installed on Debian/Ubuntu use `sudo apt-get update && sudo apt-get install make`.
 
 ## Installation
 
@@ -42,13 +44,27 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
     pnpm install
     ```
 
-4. Install Composer dependencies:
+4. Install Composer dependencies (if needed uncomment the autoload.php in the services/provider.php file and the dependencies folder in boilerplate.xml):
 
     ```
-    composer install
+    composer install (or make install)
     ```
 
 ## Usage
+
+### Make Commands
+
+The Makefile is used to install the dependencies and scope the dependencies.
+
+```
+make all # install dependencies, scope dependencies, dump autoload and remove vendor folder
+make clean # remove vendor folder and the scoped dependencies folder
+make dump # dump the autoload
+make install # install the dependencies
+make scope # scope the dependencies
+make delvendor # delete the vendor folder
+make deldependencies # delete the scoped dependencies folder
+```
 
 ### Development Mode
 
@@ -91,6 +107,8 @@ This creates an optimized version of the component and packages it into a ZIP fi
 -   `webpack.config.js`: Webpack configuration
 -   `tailwind.config.js`: Tailwind CSS configuration
 -   `composer.json`: Composer configuration
+-   `makefile`: Makefile
+-   `scoper.inc.php`: Scoper configuration
 -   `package.json`: Project dependencies and scripts
 
 ## Customization
