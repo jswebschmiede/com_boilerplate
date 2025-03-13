@@ -21,8 +21,11 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 -   Node.js (version 21.5.0 or higher)
 -   pnpm (can be installed globally with `npm install -g pnpm`)
 -   Joomla 5.x or higher (tested with Joomla 5.0)
--   PHP 8.3 or higher (tested with PHP 8.3)
+-   PHP 8.1 or higher (tested with PHP 8.3)
 -   Make (optional, but recommended). If not installed on Debian/Ubuntu use `sudo apt-get update && sudo apt-get install make`.
+-   Composer (optional, but recommended). If not installed on Debian/Ubuntu use `sudo apt-get update && sudo apt-get install composer`.
+-   PHP-Scoper (optional, but recommended). If not installed use `composer global require humbug/php-scoper`. if it is installed, try `php-scoper -V` to check the version.
+    more information about PHP-Scoper: https://github.com/humbug/php-scoper or https://www.dionysopoulos.me/book/advice-composer.html
 
 ## Installation
 
@@ -48,6 +51,24 @@ Boilerplate is a base component for Joomla, serving as a starting point for deve
 
     ```
     composer install (or make install)
+    ```
+
+5. Scope dependencies: (only needed if you want to use scoped dependencies)
+
+    ```
+    make scope
+    ```
+
+6. Dump autoload: (only needed if you want to use scoped dependencies)
+
+    ```
+    make dump
+    ```
+
+7. Remove vendor folder: (only needed if you want to use scoped dependencies)
+
+    ```
+    make delvendor
     ```
 
 ## Usage
