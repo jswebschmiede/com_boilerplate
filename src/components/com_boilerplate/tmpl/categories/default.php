@@ -25,48 +25,48 @@ $items = $this->getItems();
 ?>
 
 <div class="com_boilerplate categories-list">
-	<?php if ($this->params->get('show_page_heading')): ?>
-		<div class="row">
-			<div class="page-header mb-4">
-				<h1>
-					<?php if ($this->escape($this->params->get('page_heading'))): ?>
-						<?php echo $this->escape($this->params->get('page_heading')); ?>
-					<?php else: ?>
-						<?php echo $this->escape($this->params->get('page_title')); ?>
-					<?php endif; ?>
-				</h1>
-			</div>
-		</div>
-	<?php endif; ?>
+    <?php if ($this->params->get('show_page_heading')) : ?>
+        <div class="row">
+            <div class="page-header mb-4">
+                <h1>
+                    <?php if ($this->escape($this->params->get('page_heading'))) : ?>
+                        <?php echo $this->escape($this->params->get('page_heading')); ?>
+                    <?php else : ?>
+                        <?php echo $this->escape($this->params->get('page_title')); ?>
+                    <?php endif; ?>
+                </h1>
+            </div>
+        </div>
+    <?php endif; ?>
 
-	<ul>
-		<?php foreach ($items[$this->parent->id] as $id => $item): ?>
-			<li>
-				<a href="<?php echo Route::_(RouteHelper::getCategoryRoute($item->id, $item->language)); ?>">
-					<?php echo $item->title; ?>
-				</a>
-			</li>
+    <ul>
+        <?php foreach ($items[$this->parent->id] as $id => $item) : ?>
+            <li>
+                <a href="<?php echo Route::_(RouteHelper::getCategoryRoute($item->id, $item->language)); ?>">
+                    <?php echo $item->title; ?>
+                </a>
+            </li>
 
-			<?php if (count($item->getChildren()) > 0 && $this->maxLevelcat > 1): ?>
-				<ul class="com-content-categories__children" id="category-<?php echo $item->id; ?>">
-					<?php
-					$items[$item->id] = $item->getChildren();
-					$this->parent = $item;
-					$this->maxLevelcat--;
-					?>
+            <?php if (count($item->getChildren()) > 0 && $this->maxLevelcat > 1) : ?>
+                <ul class="com-content-categories__children" id="category-<?php echo $item->id; ?>">
+                    <?php
+                    $items[$item->id] = $item->getChildren();
+                    $this->parent = $item;
+                    $this->maxLevelcat--;
+                    ?>
 
-					<?php foreach ($items[$this->parent->id] as $id => $item): ?>
-						<li>
-							<a href="<?php echo Route::_(RouteHelper::getCategoryRoute($item->id, $item->language)); ?>">
-								<?php echo $item->title; ?>
-							</a>
-						</li>
-					<?php endforeach; ?>
+                    <?php foreach ($items[$this->parent->id] as $id => $item) : ?>
+                        <li>
+                            <a href="<?php echo Route::_(RouteHelper::getCategoryRoute($item->id, $item->language)); ?>">
+                                <?php echo $item->title; ?>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
 
-					<?php $this->parent = $item->getParent(); ?>
-					<?php $this->maxLevelcat++; ?>
-				</ul>
-			<?php endif; ?>
-		<?php endforeach; ?>
-	</ul>
+                    <?php $this->parent = $item->getParent(); ?>
+                    <?php $this->maxLevelcat++; ?>
+                </ul>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </ul>
 </div>

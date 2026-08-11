@@ -22,7 +22,7 @@ $published = (int) $state->get('filter.published');
 
 <div class="p-3">
     <div class="row">
-        <?php if (Multilanguage::isEnabled()): ?>
+        <?php if (Multilanguage::isEnabled()) : ?>
             <div class="form-group col-md-6">
                 <div class="controls">
                     <?php echo LayoutHelper::render('joomla.html.batch.language', []); ?>
@@ -31,7 +31,7 @@ $published = (int) $state->get('filter.published');
         <?php endif; ?>
     </div>
     <div class="row">
-        <?php if ($published >= 0): ?>
+        <?php if ($published >= 0) : ?>
             <div class="form-group col-md-6">
                 <div class="controls">
                     <?php echo LayoutHelper::render('joomla.html.batch.item', ['extension' => 'com_boilerplate']); ?>

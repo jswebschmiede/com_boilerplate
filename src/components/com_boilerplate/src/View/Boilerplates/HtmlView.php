@@ -18,75 +18,84 @@ defined('_JEXEC') or die;
 
 /**
  * Boilerplates list view
+ *
+ * @property-read string                            $extension
+ * @property-read array                             $items
+ * @property-read \Joomla\Registry\Registry         $params
+ * @property-read int                               $item_id
+ * @property-read \Joomla\CMS\Pagination\Pagination $pagination
+ * @property-read \Joomla\CMS\Object\CMSObject      $state
+ *
+ * @since  1.0.0
  */
 class HtmlView extends BaseHtmlView
 {
-	/**
-	 * @var    string  The name of the extension for the category
-	 * @since  3.2
-	 */
-	protected $extension = 'com_boilerplate';
+    /**
+     * @var    string  The name of the extension for the category
+     * @since  3.2
+     */
+    protected $extension = 'com_boilerplate';
 
-	/**
-	 * An array of items
-	 *
-	 * @var    array
-	 * @since  1.6
-	 */
-	protected $items = [];
+    /**
+     * An array of items
+     *
+     * @var    array
+     * @since  1.6
+     */
+    protected $items = [];
 
-	/**
-	 * The component params
-	 *
-	 * @var    \Joomla\Registry\Registry
-	 * @since  1.6
-	 */
-	protected $params;
+    /**
+     * The component params
+     *
+     * @var    \Joomla\Registry\Registry
+     * @since  1.6
+     */
+    protected $params;
 
-	/**
-	 * The ID of the item
-	 *
-	 * @var    int
-	 * @since  1.6
-	 */
-	protected $item_id;
+    /**
+     * The ID of the item
+     *
+     * @var    int
+     * @since  1.6
+     */
+    protected $item_id;
 
-	/**
-	 * The pagination object
-	 *
-	 * @var    \Joomla\CMS\Pagination\Pagination
-	 * @since  1.6
-	 */
-	protected $pagination;
+    /**
+     * The pagination object
+     *
+     * @var    \Joomla\CMS\Pagination\Pagination
+     * @since  1.6
+     */
+    protected $pagination;
 
-	/**
-	 * The state object
-	 *
-	 * @var    \Joomla\CMS\Object\CMSObject
-	 * @since  1.6
-	 */
-	protected $state;
+    /**
+     * The state object
+     *
+     * @var    \Joomla\CMS\Object\CMSObject
+     * @since  1.6
+     */
+    protected $state;
 
 
-	public function display($tpl = null): void
-	{
-		$this->items = $this->get('Items');
-		$this->state = $this->get('State');
-		$this->params = $this->state->get('params');
-		$this->pagination = $this->get('Pagination');
+    public function display($tpl = null): void
+    {
+        $this->items = $this->get('Items');
+        $this->state = $this->get('State');
+        $this->params = $this->state->get('params');
+        $this->pagination = $this->get('Pagination');
 
-		foreach ($this->items as &$item) {
-			$item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
+        foreach ($this->items as &$item) {
+            $item->slug = $item->alias ? ($item->id . ':' . $item->alias) : $item->id;
 
-			// No link for ROOT category
-			if ($item->parent_alias === 'root') {
-				$item->parent_id = null;
-			}
+            // No link for ROOT category
+            if ($item->parent_alias === 'root') {
+                $item->parent_id = null;
+            }
 
-			$item->link = Route::_(RouteHelper::getBoilerplateRoute($item->id, $item->catid, $item->language));
-			$item->category_link = Route::_(RouteHelper::getCategoryRoute($item->catid, $item->language));
-		}
+            $item->link = Route::_(RouteHelper::getBoilerplateRoute($item->id, $item->catid, $item->language));
+            $item->category_link = Route::_(RouteHelper::getCategoryRoute($item->catid, $item->language));
+        }
 
-		parent::display($tpl);
-	}
+        parent::display($tpl);
+    }
 }

@@ -31,149 +31,147 @@ use Joomla\Component\Boilerplate\Administrator\Model\BoilerplateModel;
  */
 class HtmlView extends BaseHtmlView
 {
+    /**
+     * An object of item
+     *
+     * @var    object
+     * @since  1.6
+     */
+    protected $item;
 
+    /**
+     * The model state
+     *
+     * @var    Registry
+     * @since  1.6
+     */
+    protected $state;
 
-	/**
-	 * An object of item
-	 *
-	 * @var    object
-	 * @since  1.6
-	 */
-	protected $item;
+    /**
+     * Filter form
+     *
+     * @var    \JForm
+     * @since  1.6
+     */
+    protected $form;
 
-	/**
-	 * The model state
-	 *
-	 * @var    Registry
-	 * @since  1.6
-	 */
-	protected $state;
+    /**
+     * The actions the user is authorised to perform
+     *
+     * @var  \JObject
+     */
+    protected $canDo;
 
-	/**
-	 * Filter form
-	 *
-	 * @var    \JForm
-	 * @since  1.6
-	 */
-	protected $form;
+    /**
+     * Get the state
+     *
+     * @return Registry
+     */
+    public function getState(): Registry
+    {
+        return $this->state;
+    }
 
-	/**
-	 * The actions the user is authorised to perform
-	 *
-	 * @var  \JObject
-	 */
-	protected $canDo;
+    /**
+     * Get the form
+     *
+     * @return Form
+     */
+    public function getForm(): Form
+    {
+        return $this->form;
+    }
 
-	/**
-	 * Get the state
-	 *
-	 * @return Registry
-	 */
-	public function getState(): Registry
-	{
-		return $this->state;
-	}
+    /**
+     * Get the item
+     *
+     * @return object
+     */
+    public function getItem(): object
+    {
+        return $this->item;
+    }
 
-	/**
-	 * Get the form
-	 *
-	 * @return Form
-	 */
-	public function getForm(): Form
-	{
-		return $this->form;
-	}
+    /**
+     * Method to display the view.
+     *
+     * @param   string  $tpl  A template file to load. [optional]
+     *
+     * @return  void
+     *
+     * @since   1.6
+     * @throws  \Exception
+     */
+    public function display($tpl = null): void
+    {
+        /** @var BoilerplateModel $model */
+        $model = $this->getModel();
+        $this->form = $model->getForm();
+        $this->item = $model->getItem();
+        $this->state = $model->getState();
 
-	/**
-	 * Get the item
-	 *
-	 * @return object
-	 */
-	public function getItem(): object
-	{
-		return $this->item;
-	}
+        if (count($errors = $this->get('Errors'))) {
+            throw new GenericDataException(implode("\n", $errors), 500);
+        }
 
-	/**
-	 * Method to display the view.
-	 *
-	 * @param   string  $tpl  A template file to load. [optional]
-	 *
-	 * @return  void
-	 *
-	 * @since   1.6
-	 * @throws  \Exception
-	 */
-	public function display($tpl = null): void
-	{
-		/** @var BoilerplateModel $model */
-		$model = $this->getModel();
-		$this->form = $model->getForm();
-		$this->item = $model->getItem();
-		$this->state = $model->getState();
+        $this->addToolbar();
 
-		if (count($errors = $this->get('Errors'))) {
-			throw new GenericDataException(implode("\n", $errors), 500);
-		}
+        parent::display($tpl);
+    }
 
-		$this->addToolbar();
+    /**
+     * Add the page title and toolbar.
+     *
+     * @return  void
+     *
+     * @throws \Exception
+     * @since   1.6
+     */
+    protected function addToolbar(): void
+    {
+        Factory::getApplication()->getInput()->set('hidemainmenu', true);
 
-		parent::display($tpl);
-	}
+        $user = $this->getCurrentUser();
+        $isNew = ($this->item->id == 0);
+        $toolbar = Toolbar::getInstance();
 
-	/**
-	 * Add the page title and toolbar.
-	 *
-	 * @return  void
-	 *
-	 * @throws \Exception
-	 * @since   1.6
-	 */
-	protected function addToolbar(): void
-	{
-		Factory::getApplication()->getInput()->set('hidemainmenu', true);
+        $canDo = ContentHelper::getActions('com_boilerplate');
 
-		$user = $this->getCurrentUser();
-		$isNew = ($this->item->id == 0);
-		$toolbar = Toolbar::getInstance();
+        ToolbarHelper::title($isNew ? Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATE_NEW') : Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATE_EDIT'), 'bookmark boilerplates');
 
-		$canDo = ContentHelper::getActions('com_boilerplate');
+        // If not checked out, can save the item.
+        if ($canDo->get('core.edit') || \count($user->getAuthorisedCategories('com_boilerplate', 'core.create')) > 0) {
+            $toolbar->apply('boilerplate.apply');
+        }
 
-		ToolbarHelper::title($isNew ? Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATE_NEW') : Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATE_EDIT'), 'bookmark boilerplates');
+        $saveGroup = $toolbar->dropdownButton('save-group');
 
-		// If not checked out, can save the item.
-		if ($canDo->get('core.edit') || \count($user->getAuthorisedCategories('com_boilerplate', 'core.create')) > 0) {
-			$toolbar->apply('boilerplate.apply');
-		}
+        $saveGroup->configure(
+            function (Toolbar $childBar) use ($canDo, $user, $isNew): void {
+                // If not checked out, can save the item.
+                if ($canDo->get('core.edit') > 0) {
+                    $childBar->save('boilerplate.save');
 
-		$saveGroup = $toolbar->dropdownButton('save-group');
+                    if ($canDo->get('core.create')) {
+                        $childBar->save2new('boilerplate.save2new');
+                    }
+                }
 
-		$saveGroup->configure(
-			function (Toolbar $childBar) use ($canDo, $user, $isNew): void {
-				// If not checked out, can save the item.
-				if ($canDo->get('core.edit') > 0) {
-					$childBar->save('boilerplate.save');
+                // If an existing item, can save to a copy.
+                if (!$isNew && $canDo->get('core.create')) {
+                    $childBar->save2copy('boilerplate.save2copy');
+                }
+            }
+        );
 
-					if ($canDo->get('core.create')) {
-						$childBar->save2new('boilerplate.save2new');
-					}
-				}
+        if (empty($this->item->id)) {
+            $toolbar->cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
+        } else {
+            $toolbar->cancel('boilerplate.cancel');
 
-				// If an existing item, can save to a copy.
-				if (!$isNew && $canDo->get('core.create')) {
-					$childBar->save2copy('boilerplate.save2copy');
-				}
-			}
-		);
-
-		if (empty($this->item->id)) {
-			$toolbar->cancel('boilerplate.cancel', 'JTOOLBAR_CANCEL');
-		} else {
-			$toolbar->cancel('boilerplate.cancel');
-
-			if (ComponentHelper::isEnabled('com_contenthistory') && $this->state->params->get('save_history', 0) && $canDo->get('core.edit')) {
-				$toolbar->versions('com_boilerplate.boilerplate', $this->item->id);
-			}
-		}
-	}
+            if (ComponentHelper::isEnabled('com_contenthistory') && $this->state->params->get('save_history', 0) && $canDo->get('core.edit')) {
+                $toolbar->versions('com_boilerplate.boilerplate', $this->item->id);
+            }
+        }
+    }
 }

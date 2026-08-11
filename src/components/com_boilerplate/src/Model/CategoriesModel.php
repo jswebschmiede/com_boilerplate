@@ -10,18 +10,11 @@
 
 namespace Joomla\Component\Boilerplate\Site\Model;
 
+use Joomla\CMS\Categories\CategoryServiceTrait;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Router\Route;
-use Joomla\Registry\Registry;
-use Joomla\Database\ParameterType;
-use Joomla\CMS\MVC\Model\ListModel;
-use Joomla\CMS\Categories\Categories;
-use Joomla\CMS\Language\Multilanguage;
-use Joomla\Database\DatabaseInterface;
-use Joomla\CMS\Categories\CategoryNode;
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\Form\FormFactoryInterface;
-use Joomla\Component\Content\Administrator\Extension\ContentComponent;
+use Joomla\CMS\MVC\Model\ListModel;
+use Joomla\Registry\Registry;
 
 // phpcs:disable PSR1.Files.SideEffects
 \defined('_JEXEC') or die;
@@ -51,7 +44,7 @@ class CategoriesModel extends ListModel
     /**
      * Parent category of the current one
      *
-     * @var    CategoryNode|null
+     * @var    \Joomla\CMS\Categories\CategoryNode|null
      */
     private $_parent = null;
 
@@ -129,7 +122,11 @@ class CategoriesModel extends ListModel
         }
 
         $options = [];
-        $categories = Categories::getInstance('Boilerplate', $options);
+        $options['countItems'] = $params->get('show_cat_num_items_cat', 1) || !$params->get('show_empty_categories_cat', 0);
+
+        /** @var CategoryServiceTrait $categoryService */
+        $categoryService = $app->bootComponent($this->_extension);
+        $categories = $categoryService->getCategory($options);
         $this->_parent = $categories->get($this->getState('filter.parentId', 'root'));
 
         if (\is_object($this->_parent)) {

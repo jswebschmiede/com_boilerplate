@@ -22,18 +22,18 @@ defined('_JEXEC') or die;
  */
 class BoilerplatesController extends AdminController
 {
-	/**
-	 * Proxy for getModel
-	 * @since    1.6
-	 *
-	 * @param string $name
-	 * @param string $prefix
-	 * @param array $config
-	 *
-	 * @return BaseDatabaseModel|bool
-	 */
-	public function getModel($name = 'Boilerplate', $prefix = 'Administrator', $config = []): BaseDatabaseModel|bool
-	{
-		return parent::getModel($name, $prefix, ['ignore_request' => true]);
-	}
+    /**
+     * Proxy for getModel
+     * @since    1.6
+     *
+     * @param string $name
+     * @param string $prefix
+     * @param array $config
+     *
+     * @return BaseDatabaseModel|bool
+     */
+    public function getModel($name = 'Boilerplate', $prefix = 'Administrator', $config = []): BaseDatabaseModel|bool
+    {
+        return parent::getModel($name, $prefix, ['ignore_request' => true]);
+    }
 }

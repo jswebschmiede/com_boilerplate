@@ -32,209 +32,209 @@ use Joomla\Component\Boilerplate\Administrator\Model\BoilerplatesModel;
  */
 class HtmlView extends BaseHtmlView
 {
-	/**
-	 * The search tools form
-	 *
-	 * @var    Form
-	 * @since  1.0.0
-	 */
-	public $filterForm;
+    /**
+     * The search tools form
+     *
+     * @var    Form
+     * @since  1.0.0
+     */
+    public $filterForm;
 
-	/**
-	 * The active search filters
-	 *
-	 * @var    array
-	 * @since  1.0.0
-	 */
-	public $activeFilters = [];
+    /**
+     * The active search filters
+     *
+     * @var    array
+     * @since  1.0.0
+     */
+    public $activeFilters = [];
 
-	/**
-	 * Category data
-	 *
-	 * @var    array
-	 * @since  1.0.0
-	 */
-	protected $categories = [];
+    /**
+     * Category data
+     *
+     * @var    array
+     * @since  1.0.0
+     */
+    protected $categories = [];
 
-	/**
-	 * An array of items
-	 *
-	 * @var    array
-	 * @since  1.0.0
-	 */
-	protected $items = [];
+    /**
+     * An array of items
+     *
+     * @var    array
+     * @since  1.0.0
+     */
+    protected $items = [];
 
-	/**
-	 * The pagination object
-	 *
-	 * @var    Pagination
-	 * @since  1.0.0
-	 */
-	protected $pagination;
+    /**
+     * The pagination object
+     *
+     * @var    Pagination
+     * @since  1.0.0
+     */
+    protected $pagination;
 
-	/**
-	 * The model state
-	 *
-	 * @var    Registry
-	 * @since  1.0.0
-	 */
-	protected $state;
+    /**
+     * The model state
+     *
+     * @var    Registry
+     * @since  1.0.0
+     */
+    protected $state;
 
-	/**
-	 * Is this view an Empty State
-	 *
-	 * @var  boolean
-	 * @since 1.0.0
-	 */
-	private $isEmptyState = false;
+    /**
+     * Is this view an Empty State
+     *
+     * @var  boolean
+     * @since 1.0.0
+     */
+    private $isEmptyState = false;
 
-	/**
-	 * Get the state
-	 *
-	 * @return Registry
-	 */
-	public function getState(): Registry
-	{
-		return $this->state;
-	}
+    /**
+     * Get the state
+     *
+     * @return Registry
+     */
+    public function getState(): Registry
+    {
+        return $this->state;
+    }
 
-	/**
-	 * Get the items
-	 *
-	 * @return array
-	 */
-	public function getItems(): array
-	{
-		return $this->items;
-	}
+    /**
+     * Get the items
+     *
+     * @return array
+     */
+    public function getItems(): array
+    {
+        return $this->items;
+    }
 
-	/**
-	 * Get the pagination
-	 *
-	 * @return Pagination
-	 */
-	public function getPagination(): Pagination
-	{
-		return $this->pagination;
-	}
+    /**
+     * Get the pagination
+     *
+     * @return Pagination
+     */
+    public function getPagination(): Pagination
+    {
+        return $this->pagination;
+    }
 
 
-	/**
-	 * Method to display the view.
-	 *
-	 * @param   string  $tpl  A template file to load. [optional]
-	 *
-	 * @return  void
-	 *
-	 * @since   1.0.0
-	 * @throws  \Exception
-	 */
-	public function display($tpl = null): void
-	{
-		/** @var BoilerplatesModel $model */
-		$model = $this->getModel();
-		$this->categories = $model->getCategoryOrders();
-		$this->items = $model->getItems();
-		$this->pagination = $model->getPagination();
-		$this->state = $model->getState();
-		$this->filterForm = $model->getFilterForm();
-		$this->activeFilters = $model->getActiveFilters();
+    /**
+     * Method to display the view.
+     *
+     * @param   string  $tpl  A template file to load. [optional]
+     *
+     * @return  void
+     *
+     * @since   1.0.0
+     * @throws  \Exception
+     */
+    public function display($tpl = null): void
+    {
+        /** @var BoilerplatesModel $model */
+        $model = $this->getModel();
+        $this->categories = $model->getCategoryOrders();
+        $this->items = $model->getItems();
+        $this->pagination = $model->getPagination();
+        $this->state = $model->getState();
+        $this->filterForm = $model->getFilterForm();
+        $this->activeFilters = $model->getActiveFilters();
 
-		if (!\count($this->items) && $this->isEmptyState = $this->get('IsEmptyState')) {
-			$this->setLayout('emptystate');
-		}
+        if (!\count($this->items) && $this->isEmptyState = $this->get('IsEmptyState')) {
+            $this->setLayout('emptystate');
+        }
 
-		// Check for errors.
-		if (\count($errors = $this->get('Errors'))) {
-			throw new GenericDataException(implode("\n", $errors), 500);
-		}
+        // Check for errors.
+        if (\count($errors = $this->get('Errors'))) {
+            throw new GenericDataException(implode("\n", $errors), 500);
+        }
 
-		$this->addToolbar();
+        $this->addToolbar();
 
-		// We do not need to filter by language when multilingual is disabled
-		if (!Multilanguage::isEnabled()) {
-			unset($this->activeFilters['language']);
-			$this->filterForm->removeField('language', 'filter');
-		}
+        // We do not need to filter by language when multilingual is disabled
+        if (!Multilanguage::isEnabled()) {
+            unset($this->activeFilters['language']);
+            $this->filterForm->removeField('language', 'filter');
+        }
 
-		parent::display($tpl);
-	}
+        parent::display($tpl);
+    }
 
-	/**
-	 * Add the page title and toolbar.
-	 *
-	 * @return  void
-	 *
-	 * @since   1.0.0
-	 */
-	protected function addToolbar(): void
-	{
-		$canDo = ContentHelper::getActions('com_boilerplate', 'category', $this->state->get('filter.category_id'));
-		$user = $this->getCurrentUser();
-		$toolbar = Toolbar::getInstance();
+    /**
+     * Add the page title and toolbar.
+     *
+     * @return  void
+     *
+     * @since   1.0.0
+     */
+    protected function addToolbar(): void
+    {
+        $canDo = ContentHelper::getActions('com_boilerplate', 'category', $this->state->get('filter.category_id'));
+        $user = $this->getCurrentUser();
+        $toolbar = Toolbar::getInstance();
 
-		ToolbarHelper::title(Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATES'), 'bookmark boilerplates');
+        ToolbarHelper::title(Text::_('COM_BOILERPLATE_MANAGER_BOILERPLATES'), 'bookmark boilerplates');
 
-		if ($canDo->get('core.create') || \count($user->getAuthorisedCategories('com_boilerplate', 'core.create')) > 0) {
-			$toolbar->addNew('boilerplate.add');
-		}
+        if ($canDo->get('core.create') || \count($user->getAuthorisedCategories('com_boilerplate', 'core.create')) > 0) {
+            $toolbar->addNew('boilerplate.add');
+        }
 
-		if (!$this->isEmptyState && ($canDo->get('core.edit.state') || ($this->state->get('filter.published') == -2 && $canDo->get('core.delete')))) {
-			/** @var  DropdownButton $dropdown */
-			$dropdown = $toolbar->dropdownButton('status-group', 'JTOOLBAR_CHANGE_STATUS')
-				->toggleSplit(false)
-				->icon('icon-ellipsis-h')
-				->buttonClass('btn btn-action')
-				->listCheck(true);
+        if (!$this->isEmptyState && ($canDo->get('core.edit.state') || ($this->state->get('filter.published') == -2 && $canDo->get('core.delete')))) {
+            /** @var  DropdownButton $dropdown */
+            $dropdown = $toolbar->dropdownButton('status-group', 'JTOOLBAR_CHANGE_STATUS')
+                ->toggleSplit(false)
+                ->icon('icon-ellipsis-h')
+                ->buttonClass('btn btn-action')
+                ->listCheck(true);
 
-			$childBar = $dropdown->getChildToolbar();
+            $childBar = $dropdown->getChildToolbar();
 
-			if ($canDo->get('core.edit.state')) {
-				if ($this->state->get('filter.published') != 2) {
-					$childBar->publish('boilerplates.publish')->listCheck(true);
+            if ($canDo->get('core.edit.state')) {
+                if ($this->state->get('filter.published') != 2) {
+                    $childBar->publish('boilerplates.publish')->listCheck(true);
 
-					$childBar->unpublish('boilerplates.unpublish')->listCheck(true);
-				}
+                    $childBar->unpublish('boilerplates.unpublish')->listCheck(true);
+                }
 
-				if ($this->state->get('filter.published') != -1) {
-					if ($this->state->get('filter.published') != 2) {
-						$childBar->archive('boilerplates.archive')->listCheck(true);
-					} elseif ($this->state->get('filter.published') == 2) {
-						$childBar->publish('publish')->task('boilerplates.publish')->listCheck(true);
-					}
-				}
+                if ($this->state->get('filter.published') != -1) {
+                    if ($this->state->get('filter.published') != 2) {
+                        $childBar->archive('boilerplates.archive')->listCheck(true);
+                    } elseif ($this->state->get('filter.published') == 2) {
+                        $childBar->publish('publish')->task('boilerplates.publish')->listCheck(true);
+                    }
+                }
 
-				$childBar->checkin('boilerplates.checkin');
+                $childBar->checkin('boilerplates.checkin');
 
-				if ($this->state->get('filter.published') != -2) {
-					$childBar->trash('boilerplates.trash')->listCheck(true);
-				}
-			}
+                if ($this->state->get('filter.published') != -2) {
+                    $childBar->trash('boilerplates.trash')->listCheck(true);
+                }
+            }
 
-			if ($this->state->get('filter.published') == -2 && $canDo->get('core.delete')) {
-				$toolbar->delete('boilerplates.delete', 'JTOOLBAR_EMPTY_TRASH')
-					->message('JGLOBAL_CONFIRM_DELETE')
-					->listCheck(true);
-			}
+            if ($this->state->get('filter.published') == -2 && $canDo->get('core.delete')) {
+                $toolbar->delete('boilerplates.delete', 'JTOOLBAR_EMPTY_TRASH')
+                    ->message('JGLOBAL_CONFIRM_DELETE')
+                    ->listCheck(true);
+            }
 
-			// Add a batch button
-			if (
-				$user->authorise('core.create', 'com_boilerplate')
-				&& $user->authorise('core.edit', 'com_boilerplate')
-				&& $user->authorise('core.edit.state', 'com_boilerplate')
-			) {
-				$childBar->popupButton('batch', 'JTOOLBAR_BATCH')
-					->popupType('inline')
-					->textHeader(Text::_('COM_BOILERPLATE_BATCH_OPTIONS'))
-					->url('#joomla-dialog-batch')
-					->modalWidth('800px')
-					->modalHeight('fit-content')
-					->listCheck(true);
-			}
-		}
+            // Add a batch button
+            if (
+                $user->authorise('core.create', 'com_boilerplate')
+                && $user->authorise('core.edit', 'com_boilerplate')
+                && $user->authorise('core.edit.state', 'com_boilerplate')
+            ) {
+                $childBar->popupButton('batch', 'JTOOLBAR_BATCH')
+                    ->popupType('inline')
+                    ->textHeader(Text::_('COM_BOILERPLATE_BATCH_OPTIONS'))
+                    ->url('#joomla-dialog-batch')
+                    ->modalWidth('800px')
+                    ->modalHeight('fit-content')
+                    ->listCheck(true);
+            }
+        }
 
-		if ($user->authorise('core.admin', 'com_boilerplate') || $user->authorise('core.options', 'com_boilerplate')) {
-			$toolbar->preferences('com_boilerplate');
-		}
-	}
+        if ($user->authorise('core.admin', 'com_boilerplate') || $user->authorise('core.options', 'com_boilerplate')) {
+            $toolbar->preferences('com_boilerplate');
+        }
+    }
 }

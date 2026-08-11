@@ -23,33 +23,33 @@ defined('_JEXEC') or die;
  */
 class BoilerplateController extends FormController
 {
-	use VersionableControllerTrait;
+    use VersionableControllerTrait;
 
-	/**
-	 * The view list string
-	 * @var string
-	 */
-	protected $view_list = 'boilerplates';
+    /**
+     * The view list string
+     * @var string
+     */
+    protected $view_list = 'boilerplates';
 
-	/**
-	 * Method to run batch operations.
-	 *
-	 * @param   string  $model  The model
-	 *
-	 * @return  boolean  True on success.
-	 *
-	 * @since   2.5
-	 */
-	public function batch($model = null)
-	{
-		$this->checkToken();
+    /**
+     * Method to run batch operations.
+     *
+     * @param   string  $model  The model
+     *
+     * @return  boolean  True on success.
+     *
+     * @since   2.5
+     */
+    public function batch($model = null)
+    {
+        $this->checkToken();
 
-		// Set the model
-		$model = $this->getModel('Boilerplate', '', []);
+        // Set the model
+        $model = $this->getModel('Boilerplate', '', []);
 
-		// Preset the redirect
-		$this->setRedirect(Route::_('index.php?option=com_boilerplate&view=boilerplates' . $this->getRedirectToListAppend(), false));
+        // Preset the redirect
+        $this->setRedirect(Route::_('index.php?option=com_boilerplate&view=boilerplates' . $this->getRedirectToListAppend(), false));
 
-		return parent::batch($model);
-	}
+        return parent::batch($model);
+    }
 }

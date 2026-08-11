@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * @package     com_boilerplate
  * @version     1.0.0

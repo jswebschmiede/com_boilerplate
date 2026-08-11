@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @package     com_boilerplate
  * @version     1.0.0
@@ -32,35 +33,35 @@ use Joomla\Component\Boilerplate\Administrator\Extension\BoilerplateComponent;
  * @since  4.0.0
  */
 return new class implements ServiceProviderInterface {
-	/**
-	 * Registers the service provider with a DI container.
-	 *
-	 * @param   Container  $container  The DI container.
-	 *
-	 * @return  void
-	 *
-	 * @since   4.0.0
-	 */
-	public function register(Container $container): void
-	{
-		$container->registerServiceProvider(new CategoryFactory('\\Joomla\\Component\\Boilerplate'));
-		$container->registerServiceProvider(new MVCFactory('\\Joomla\\Component\\Boilerplate'));
-		$container->registerServiceProvider(new ComponentDispatcherFactory('\\Joomla\\Component\\Boilerplate'));
-		$container->registerServiceProvider(new RouterFactory('\\Joomla\\Component\\Boilerplate'));
+    /**
+     * Registers the service provider with a DI container.
+     *
+     * @param   Container  $container  The DI container.
+     *
+     * @return  void
+     *
+     * @since   4.0.0
+     */
+    public function register(Container $container): void
+    {
+        $container->registerServiceProvider(new CategoryFactory('\\Joomla\\Component\\Boilerplate'));
+        $container->registerServiceProvider(new MVCFactory('\\Joomla\\Component\\Boilerplate'));
+        $container->registerServiceProvider(new ComponentDispatcherFactory('\\Joomla\\Component\\Boilerplate'));
+        $container->registerServiceProvider(new RouterFactory('\\Joomla\\Component\\Boilerplate'));
 
-		$container->set(
-			ComponentInterface::class,
-			function (Container $container): BoilerplateComponent {
-				$component = new BoilerplateComponent($container->get(ComponentDispatcherFactoryInterface::class));
+        $container->set(
+            ComponentInterface::class,
+            function (Container $container): BoilerplateComponent {
+                $component = new BoilerplateComponent($container->get(ComponentDispatcherFactoryInterface::class));
 
-				$component->setRegistry($container->get(Registry::class));
-				$component->setMVCFactory($container->get(MVCFactoryInterface::class));
-				$component->setCategoryFactory($container->get(CategoryFactoryInterface::class));
+                $component->setRegistry($container->get(Registry::class));
+                $component->setMVCFactory($container->get(MVCFactoryInterface::class));
+                $component->setCategoryFactory($container->get(CategoryFactoryInterface::class));
 
-				$component->setRouterFactory($container->get(RouterFactoryInterface::class));
+                $component->setRouterFactory($container->get(RouterFactoryInterface::class));
 
-				return $component;
-			}
-		);
-	}
+                return $component;
+            }
+        );
+    }
 };
