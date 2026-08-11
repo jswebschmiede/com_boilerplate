@@ -21,7 +21,7 @@ $wa->useScript('component.boilerplate.site');
 $wa->useStyle('component.boilerplate.site');
 ?>
 
-<div class="com_boilerplate boilerplates">
+<div class="com_boilerplate boilerplates text-foreground">
     <?php if ($this->params->get('show_page_heading')) : ?>
         <div class="row">
             <div class="page-header mb-4">
