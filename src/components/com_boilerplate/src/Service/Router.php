@@ -10,7 +10,6 @@
 
 namespace Joomla\Component\Boilerplate\Site\Service;
 
-use Joomla\CMS\Factory;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\Database\ParameterType;
 use Joomla\Database\DatabaseInterface;
@@ -22,6 +21,7 @@ use Joomla\CMS\Component\Router\Rules\MenuRules;
 use Joomla\CMS\Component\Router\Rules\NomenuRules;
 use Joomla\CMS\Categories\CategoryFactoryInterface;
 use Joomla\CMS\Component\Router\Rules\StandardRules;
+use Joomla\CMS\Component\Router\Rules\PreprocessRules;
 use Joomla\CMS\Component\Router\RouterViewConfiguration;
 
 // phpcs:disable PSR1.Files.SideEffects
@@ -29,9 +29,9 @@ use Joomla\CMS\Component\Router\RouterViewConfiguration;
 // phpcs:enable PSR1.Files.SideEffects
 
 /**
- * Routing class of com_content
+ * Routing class of com_boilerplate
  *
- * @since  3.3
+ * @since  1.0.0
  */
 class Router extends RouterView
 {
@@ -70,7 +70,7 @@ class Router extends RouterView
     private DatabaseInterface $db;
 
     /**
-     * Content Component router constructor
+     * Boilerplate Component router constructor
      *
      * @param   SiteApplication           $app              The application object
      * @param   AbstractMenu              $menu             The menu object to work with
@@ -97,12 +97,13 @@ class Router extends RouterView
         $boilerplate->setKey('id')->setParent($category, 'catid');
         $this->registerView($boilerplate);
 
-        $boilerplates = new RouterViewConfiguration('boilerplates');
-        $boilerplates->setKey('id');
-        $this->registerView($boilerplates);
+        $this->registerView(new RouterViewConfiguration('boilerplates'));
 
         parent::__construct($app, $menu);
 
+        $preprocess = new PreprocessRules($boilerplate, '#__boilerplate_boilerplate', 'id', 'catid');
+        $preprocess->setDatabase($this->db);
+        $this->attachRule($preprocess);
         $this->attachRule(new MenuRules($this));
         $this->attachRule(new StandardRules($this));
         $this->attachRule(new NomenuRules($this));
@@ -126,9 +127,10 @@ class Router extends RouterView
 
             if ($this->noIDs) {
                 foreach ($path as &$segment) {
-                    list($id, $segment) = explode(':', $segment, 2);
+                    [, $segment] = explode(':', $segment, 2);
                 }
             }
+
             return $path;
         }
 
@@ -136,7 +138,7 @@ class Router extends RouterView
     }
 
     /**
-     * Method to get the segment(s) for a category
+     * Method to get the segment(s) for a categories view
      *
      * @param   string  $id     ID of the category to retrieve the segments for
      * @param   array   $query  The request that is built right now
@@ -149,25 +151,18 @@ class Router extends RouterView
     }
 
     /**
-     * Method to get the segment(s) for an article
+     * Method to get the segment(s) for a boilerplate item
      *
-     * @param   string  $id     ID of the article to retrieve the segments for
+     * @param   string  $id     ID of the item to retrieve the segments for
      * @param   array   $query  The request that is built right now
      *
-     * @return  array|string  The segments of this item
+     * @return  array  The segments of this item
      */
-    public function getBoilerplateSegment($id, $query)
+    public function getBoilerplateSegment($id, $query): array
     {
-        if (!strpos($id, ':')) {
-            $id = (int) $id;
-            $alias = $this->getAlias($id);
-            if ($alias) {
-                $id .= ':' . $alias;
-            }
-        }
+        if ($this->noIDs && str_contains((string) $id, ':')) {
+            [$void, $segment] = explode(':', (string) $id, 2);
 
-        if ($this->noIDs) {
-            list($void, $segment) = explode(':', $id, 2);
             return [$void => $segment];
         }
 
@@ -177,14 +172,14 @@ class Router extends RouterView
     /**
      * Method to get the segment(s) for a form
      *
-     * @param   string  $id     ID of the article form to retrieve the segments for
+     * @param   string  $id     ID of the form to retrieve the segments for
      * @param   array   $query  The request that is built right now
      *
-     * @return  array|string  The segments of this item
+     * @return  array  The segments of this item
      *
      * @since   3.7.3
      */
-    public function getFormSegment($id, $query): array|string
+    public function getFormSegment($id, $query): array
     {
         return $this->getBoilerplateSegment($id, $query);
     }
@@ -195,7 +190,7 @@ class Router extends RouterView
      * @param   string  $segment  Segment to retrieve the ID for
      * @param   array   $query    The request that is parsed right now
      *
-     * @return  mixed   The id of this item or false
+     * @return  bool|int  The id of this item or false
      */
     public function getCategoryId($segment, $query): bool|int
     {
@@ -208,10 +203,8 @@ class Router extends RouterView
                         if ($child->alias == $segment) {
                             return $child->id;
                         }
-                    } else {
-                        if ($child->id == (int) $segment) {
-                            return $child->id;
-                        }
+                    } elseif ($child->id == (int) $segment) {
+                        return $child->id;
                     }
                 }
             }
@@ -221,42 +214,41 @@ class Router extends RouterView
     }
 
     /**
-     * Method to get the segment(s) for a category
+     * Method to get the id for a categories view segment
      *
      * @param   string  $segment  Segment to retrieve the ID for
      * @param   array   $query    The request that is parsed right now
      *
-     * @return  mixed   The id of this item or false
+     * @return  bool|int  The id of this item or false
      */
-    public function getCategoriesId($segment, $query)
+    public function getCategoriesId($segment, $query): bool|int
     {
         return $this->getCategoryId($segment, $query);
     }
 
     /**
-     * Method to get the segment(s) for an article
+     * Method to get the id for a boilerplate item from a URL segment
      *
-     * @param   string  $segment  Segment of the article to retrieve the ID for
+     * @param   string  $segment  Segment of the item to retrieve the ID for
      * @param   array   $query    The request that is parsed right now
      *
-     * @return  mixed   The id of this item or false
+     * @return  int  The id of this item or 0 if not found
      */
-    public function getBoilerplateId($segment, $query)
+    public function getBoilerplateId($segment, $query): int
     {
         if ($this->noIDs) {
             $dbquery = $this->db->getQuery(true);
             $dbquery->select($this->db->quoteName('id'))
                 ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-                ->where(
-                    [
-                        $this->db->quoteName('alias') . ' = :alias',
-                        $this->db->quoteName('catid') . ' = :catid',
-                    ]
-                )
-                ->bind(':alias', $segment)
-                ->bind(':catid', $query['id'], ParameterType::INTEGER);
-            $this->db->setQuery($dbquery);
+                ->where($this->db->quoteName('alias') . ' = :alias')
+                ->bind(':alias', $segment);
 
+            if (isset($query['id']) && $query['id']) {
+                $dbquery->where($this->db->quoteName('catid') . ' = :catid')
+                    ->bind(':catid', $query['id'], ParameterType::INTEGER);
+            }
+
+            $this->db->setQuery($dbquery);
 
             return (int) $this->db->loadResult();
         }
@@ -282,22 +274,5 @@ class Router extends RouterView
         }
 
         return $this->categoryCache[$key];
-    }
-
-    private function getAlias(int $id): string
-    {
-        $query = $this->db->getQuery(true)
-            ->select($this->db->quoteName('alias'))
-            ->from($this->db->quoteName('#__boilerplate_boilerplate'))
-            ->where($this->db->quoteName('id') . ' = :id')
-            ->bind(':id', $id, ParameterType::INTEGER);
-
-        $this->db->setQuery($query);
-
-        try {
-            return $this->db->loadResult() ?: '';
-        } catch (\RuntimeException $e) {
-            throw new \RuntimeException($e->getMessage(), $e->getCode());
-        }
     }
 }
