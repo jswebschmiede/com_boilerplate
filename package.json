@@ -4,7 +4,8 @@
     "description": "",
     "scripts": {
         "build": "webpack --mode production",
-        "dev": "webpack --mode development --watch"
+        "dev": "webpack --mode development --watch",
+        "rename": "node scripts/rename-component.js"
     },
     "keywords": [],
     "author": "",

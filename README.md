@@ -132,12 +132,18 @@ This creates an optimized version of the component and packages it into a ZIP fi
 - `scoper.inc.php`: Scoper configuration
 - `package.json`: Project dependencies and scripts
 
-## Customization
+## Rename the component
 
-You can customize the component by editing the files in the `src/` directory. The main customization points are:
+Replace every `boilerplate` placeholder (namespaces, language keys, Webpack paths, package names, SQL tables, views) with your component slug. Hyphens become underscores (`acme-shop` → `acme_shop`). An optional `com_` prefix is stripped (`com_room` → `room`). The Joomla option is always `com_{slug}`.
 
-- replace all occurences of `com_boilerplate` with your component name, don't forget to change the name in the `package.json` file, the `webpack.config.js` file and the `composer.json` file too
-- replace all occurences of `Boilerplate` and `boilerplate` with your component name
+Use a **singular** slug so list views become `{slug}s` (`room` → `rooms`).
+
+```
+pnpm rename -- room
+pnpm rename -- room --dry-run
+```
+
+Files such as `boilerplate.xml` and folders such as `com_boilerplate` or `View/Boilerplates` are renamed. The project folder is not renamed; rename `com_boilerplate` to `com_room` afterwards.
 
 ## Contributing
 
