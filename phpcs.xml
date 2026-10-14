@@ -34,6 +34,9 @@
 	<rule ref="PSR12">
 		<exclude name="Generic.Files.LineLength.TooLong" />
 		<exclude name="Generic.Files.LineLength.MaxExceeded" />
+		<!-- defined('_JEXEC') or die; is a required Joomla side effect. -->
+		<exclude name="PSR1.Files.SideEffects.FoundWithSymbols" />
+		<!-- Joomla models/tables use inherited $_context, $_extension, etc. -->
 		<exclude name="PSR2.Classes.PropertyDeclaration.Underscore" />
 	</rule>
 </ruleset>

@@ -212,9 +212,7 @@ class BoilerplatesModel extends ListModel
         $children = $this->_parent->getChildren(true);
 
         // Extract category IDs
-        $categoryIds = array_map(function ($child) {
-            return $child->id;
-        }, $children);
+        $categoryIds = array_map(fn($child) => $child->id, $children);
 
         if (empty($categoryIds)) {
             return false;

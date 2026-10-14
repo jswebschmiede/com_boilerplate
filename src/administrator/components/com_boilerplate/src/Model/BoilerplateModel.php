@@ -72,10 +72,10 @@ class BoilerplateModel extends AdminModel
         $form = $this->loadForm(
             'com_boilerplate.boilerplate',
             'boilerplate',
-            array(
+            [
                 'control' => 'jform',
                 'load_data' => $loadData
-            )
+            ]
         );
 
         if (empty($form)) {
@@ -232,7 +232,7 @@ class BoilerplateModel extends AdminModel
             $origTable->load($input->getInt('id'));
 
             if ($data['name'] == $origTable->name) {
-                list($name, $alias) = $this->generateNewTitleAndAlias($data['alias'], $data['name']);
+                [$name, $alias] = $this->generateNewTitleAndAlias($data['alias'], $data['name']);
                 $data['name'] = $name;
                 $data['alias'] = $alias;
             } else {
@@ -256,7 +256,7 @@ class BoilerplateModel extends AdminModel
         if ($createCategory && $this->canCreateCategory()) {
             $category = [
                 // Remove #new# prefix, if exists.
-                'title' => strpos($data['catid'], '#new#') === 0 ? substr($data['catid'], 5) : $data['catid'],
+                'title' => str_starts_with($data['catid'], '#new#') ? substr($data['catid'], 5) : $data['catid'],
                 'parent_id' => 1,
                 'extension' => 'com_boilerplate',
                 'language' => $data['language'],

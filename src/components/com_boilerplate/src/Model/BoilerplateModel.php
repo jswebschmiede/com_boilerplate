@@ -77,9 +77,7 @@ class BoilerplateModel extends ItemModel
         $pk = (int) ($pk ?: $this->getState('boilerplate.id'));
 
 
-        if ($this->_item === null) {
-            $this->_item = [];
-        }
+        $this->_item ??= [];
 
 
         if (!isset($this->_item[$pk])) {

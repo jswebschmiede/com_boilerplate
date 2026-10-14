@@ -49,7 +49,7 @@ class Router extends RouterView
      *
      * @since   4.0.0
      */
-    private CategoryFactoryInterface $categoryFactory;
+    private readonly CategoryFactoryInterface $categoryFactory;
 
     /**
      * The category cache
@@ -67,7 +67,7 @@ class Router extends RouterView
      *
      * @since  4.0.0
      */
-    private DatabaseInterface $db;
+    private readonly DatabaseInterface $db;
 
     /**
      * Boilerplate Component router constructor
@@ -269,9 +269,7 @@ class Router extends RouterView
     {
         $key = serialize($options);
 
-        if (!isset($this->categoryCache[$key])) {
-            $this->categoryCache[$key] = $this->categoryFactory->createCategory($options);
-        }
+        $this->categoryCache[$key] ??= $this->categoryFactory->createCategory($options);
 
         return $this->categoryCache[$key];
     }
